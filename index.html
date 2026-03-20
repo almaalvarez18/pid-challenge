@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P&ID Challenge — Líderes Industriales</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a1a; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+#app { background: #fff; border-radius: 16px; border: 1px solid #e0dfd8; padding: 2rem; width: 100%; max-width: 620px; }
+.screen { display: none; }
+.screen.active { display: block; }
+h1 { font-size: 22px; font-weight: 600; margin-bottom: 0.4rem; }
+.subtitulo { font-size: 15px; color: #666; line-height: 1.6; margin-bottom: 1.5rem; }
+.intro-card { background: #f5f5f3; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+.intro-tema { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #333; margin-bottom: 8px; }
+.intro-num { width: 24px; height: 24px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.chip { background: #f5f5f3; border: 1px solid #e0dfd8; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #555; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.badge-tema { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 8px; background: #dbeafe; color: #1d4ed8; }
+.badge-score { font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 8px; background: #f5f5f3; color: #555; border: 1px solid #e0dfd8; }
+.progress-bar { height: 4px; background: #e0dfd8; border-radius: 99px; margin-bottom: 1.5rem; }
+.progress-fill { height: 100%; background: #1d4ed8; border-radius: 99px; transition: width 0.3s; }
+.pregunta-num { font-size: 13px; color: #888; margin-bottom: 0.4rem; }
+.simbolo { font-family: 'Courier New', monospace; font-size: 20px; font-weight: 600; background: #f5f5f3; border: 1px solid #e0dfd8; border-radius: 10px; padding: 10px 18px; display: inline-block; margin-bottom: 1rem; letter-spacing: 2px; }
+.pregunta-texto { font-size: 17px; font-weight: 500; line-height: 1.5; margin-bottom: 0.5rem; }
+.pregunta-hint { font-size: 13px; color: #888; margin-bottom: 1.25rem; }
+.opciones { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem; }
+.opcion { background: #fff; border: 1px solid #d0cfc8; border-radius: 10px; padding: 14px 16px; font-size: 15px; color: #1a1a1a; cursor: pointer; text-align: left; transition: background 0.15s; font-family: inherit; }
+.opcion:hover:not(:disabled) { background: #f5f5f3; }
+.opcion.correcta { background: #dcfce7; border-color: #86efac; color: #166534; }
+.opcion.incorrecta { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+.opcion:disabled { cursor: default; }
+.feedback-box { border-radius: 10px; padding: 14px 16px; font-size: 14px; line-height: 1.6; margin-bottom: 1.25rem; }
+.feedback-box.ok { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
+.feedback-box.fail { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+button.primary { width: 100%; padding: 14px; font-size: 15px; font-weight: 600; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+button.primary:hover { background: #333; }
+button.secondary { flex: 1; padding: 12px; font-size: 14px; font-weight: 500; background: #fff; color: #1a1a1a; border: 1px solid #d0cfc8; border-radius: 10px; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+button.secondary:hover { background: #f5f5f3; }
+.resultado-card { background: #f5f5f3; border-radius: 14px; padding: 2rem; text-align: center; margin-bottom: 1.5rem; }
+.resultado-score { font-size: 52px; font-weight: 700; color: #1a1a1a; }
+.resultado-label { font-size: 15px; color: #666; margin-top: 0.25rem; }
+.resultado-msg { font-size: 15px; color: #333; margin-top: 1rem; line-height: 1.5; }
+.temas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+.tema-card { background: #fff; border: 1px solid #e0dfd8; border-radius: 10px; padding: 14px; text-align: center; }
+.tema-titulo { font-size: 12px; color: #888; margin-bottom: 4px; }
+.tema-valor { font-size: 22px; font-weight: 600; color: #1a1a1a; }
+.areas-box { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 1.5rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 12px 16px; }
+.btns-row { display: flex; gap: 10px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="intro" class="screen active">
+  <h1>P&ID Challenge</h1>
+  <p class="subtitulo">Juego de capacitación para operadores — Líderes Industriales S.A. de C.V.</p>
+  <div class="intro-card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Este juego cubre 3 temas esenciales:</div>
+    <div class="intro-tema"><div class="intro-num">1</div><div><b>Tags de instrumentación</b> — Norma ISA, identificación y lectura de etiquetas</div></div>
+    <div class="intro-tema"><div class="intro-num">2</div><div><b>Tipos de señales</b> — Eléctricas, neumáticas, hidráulicas y símbolos P&ID</div></div>
+    <div class="intro-tema"><div class="intro-num">3</div><div><b>Válvulas y actuadores</b> — Globo, mariposa, bola, compuerta, PSV, PRV y más</div></div>
+  </div>
+  <div class="chips">
+    <div class="chip">100 preguntas en banco</div>
+    <div class="chip">15 aleatorias por partida</div>
+    <div class="chip">10–15 minutos</div>
+  </div>
+  <button class="primary" onclick="iniciarJuego()">Iniciar juego</button>
+</div>
+
+<div id="juego" class="screen">
+  <div class="header">
+    <span id="badge-tema" class="badge-tema">Tags</span>
+    <span id="badge-score" class="badge-score">0 / 0</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progreso" style="width:0%"></div></div>
+  <div id="pregunta-num" class="pregunta-num"></div>
+  <div id="simbolo-display" class="simbolo" style="display:none"></div>
+  <div id="pregunta-texto" class="pregunta-texto"></div>
+  <div id="pregunta-hint" class="pregunta-hint"></div>
+  <div class="opciones" id="opciones"></div>
+  <div id="feedback" style="display:none"></div>
+  <button class="primary" id="btn-siguiente" onclick="siguiente()" style="display:none">Siguiente pregunta</button>
+</div>
+
+<div id="resultado" class="screen">
+  <div class="resultado-card">
+    <div class="resultado-score" id="res-score"></div>
+    <div class="resultado-label">puntos de 15</div>
+    <div class="resultado-msg" id="res-msg"></div>
+  </div>
+  <div class="temas-grid" id="res-temas"></div>
+  <div class="areas-box" id="res-areas"></div>
+  <div class="btns-row">
+    <button class="secondary" onclick="reiniciar()">Jugar de nuevo</button>
+    <button class="secondary" onclick="window.print()">Imprimir resultados</button>
+  </div>
+</div>
+
+</div>
+<script>
+const banco = [
+  // ── TAGS (34 preguntas) ──────────────────────────────────────────────
+  {tema:"Tags", simbolo:"FIC-101", texto:"¿Qué indica el tag FIC-101?", hint:"Cada letra tiene un significado según la norma ISA.", opciones:["Controlador Indicador de Flujo, lazo 101","Sensor de presión con indicador","Controlador de temperatura lazo 1","Indicador de nivel con alarma"], correcta:0, explicacion:"FIC = Flow Indicator Controller. Según ISA-5.1, la primera letra indica la variable medida (F=Flujo) y las siguientes la función del instrumento."},
+  {tema:"Tags", simbolo:"TT-205", texto:"¿Qué tipo de instrumento es el TT-205?", hint:"La primera T indica la variable; la segunda, la función.", opciones:["Transmisor de presión","Transmisor de temperatura","Interruptor de temperatura","Controlador de temperatura"], correcta:1, explicacion:"TT = Temperature Transmitter. Primera T = Temperature (variable), segunda T = Transmitter (función)."},
+  {tema:"Tags", simbolo:"PSV-302", texto:"¿Cuál es la función del PSV-302?", hint:"PSV se asocia a seguridad del proceso.", opciones:["Válvula de control de presión","Válvula de alivio de presión (seguridad)","Sensor de presión con visualización","Válvula solenoide de presión"], correcta:1, explicacion:"PSV = Pressure Safety Valve. Abre automáticamente cuando la presión supera el límite de diseño para proteger el proceso."},
+  {tema:"Tags", simbolo:"LIC-410", texto:"¿Qué variable controla el LIC-410?", hint:"La primera letra siempre indica la variable de proceso.", opciones:["Flujo","Temperatura","Nivel","Presión"], correcta:2, explicacion:"L = Level (Nivel). LIC = Level Indicator Controller. Controla y muestra el nivel en el lazo 410."},
+  {tema:"Tags", simbolo:"AI-501", texto:"¿Qué hace el instrumento AI-501?", hint:"A en ISA-5.1 indica análisis o composición.", opciones:["Alarma de temperatura","Analizador/Indicador de composición","Actuador eléctrico con interruptor","Indicador de presión atmosférica"], correcta:1, explicacion:"AI = Analyzer Indicator. Mide y muestra la composición o calidad de un fluido."},
+  {tema:"Tags", simbolo:"PCV-115", texto:"¿Qué función cumple el PCV-115?", hint:"C en la segunda posición indica control.", opciones:["Indicador de presión","Válvula controladora de presión","Transmisor de presión","Controlador de caudal"], correcta:1, explicacion:"PCV = Pressure Control Valve. Regula automáticamente la presión del proceso según la señal de control recibida."},
+  {tema:"Tags", simbolo:"TE-032", texto:"¿Qué elemento de campo representa el tag TE-032?", hint:"E en la segunda posición indica elemento primario de medición.", opciones:["Transmisor de temperatura","Elemento primario de temperatura (termopozo/termopar)","Controlador de temperatura","Indicador local de temperatura"], correcta:1, explicacion:"TE = Temperature Element. Es el elemento sensor primario, como un termopar o RTD, que mide la temperatura directamente en el proceso."},
+  {tema:"Tags", simbolo:"FT-220", texto:"¿Cuál es la diferencia entre FT y FI?", hint:"T = Transmitter, I = Indicator.", opciones:["FT mide flujo másico; FI mide flujo volumétrico","FT transmite la señal a distancia; FI solo indica localmente","FT es para gases; FI es para líquidos","Son sinónimos en la norma ISA"], correcta:1, explicacion:"FT = Flow Transmitter: convierte la variable en señal estandarizada (4–20 mA) para transmitirla. FI = Flow Indicator: solo muestra el valor localmente sin transmitir."},
+  {tema:"Tags", simbolo:"LSH-305", texto:"¿Qué indica el tag LSH-305?", hint:"S = Switch, H = High.", opciones:["Transmisor de nivel alto","Interruptor de nivel alto (alarma)","Controlador de nivel superior","Sensor hidráulico de nivel"], correcta:1, explicacion:"LSH = Level Switch High. Activa una alarma o acción cuando el nivel supera el punto alto de disparo."},
+  {tema:"Tags", simbolo:"PDIT-401", texto:"¿Cuántas funciones tiene el instrumento PDIT-401?", hint:"Cuenta las letras después de la primera.", opciones:["Una función","Dos funciones","Tres funciones: diferencial, indicador y transmisor","Es un código de área, no un instrumento"], correcta:2, explicacion:"PDIT = Pressure Differential Indicator Transmitter. Mide presión diferencial (PD), la indica (I) y la transmite como señal estándar (T). Según ISA-5.1 se pueden combinar varias funciones."},
+  {tema:"Tags", simbolo:"FCV-211", texto:"¿Qué hace una FCV en el proceso?", hint:"C = Control, V = Valve.", opciones:["Mide y transmite el flujo","Controla el flujo mediante apertura/cierre regulado","Solo cierra ante emergencia","Filtra impurezas del fluido"], correcta:1, explicacion:"FCV = Flow Control Valve. Regula el flujo de proceso de manera continua según la señal del controlador, abriendo o cerrando proporcionalmente."},
+  {tema:"Tags", texto:"Según la norma ISA-5.1, ¿qué indica la primera letra de un tag de instrumento?", opciones:["El número de lazo","La variable de proceso medida o iniciada","La función del instrumento","La ubicación en la planta"], correcta:1, explicacion:"La norma ISA-5.1 establece que la primera letra del tag siempre indica la variable de proceso (F=Flujo, T=Temperatura, P=Presión, L=Nivel, A=Análisis, etc.)."},
+  {tema:"Tags", texto:"¿Qué significa la letra 'R' en la segunda posición de un tag según ISA-5.1?", opciones:["Reset","Registro (Recorder)","Remoto","Redundante"], correcta:1, explicacion:"R en posición de función = Recorder (Registrador). El instrumento registra la variable en el tiempo, como un registrador de temperatura o flujo."},
+  {tema:"Tags", texto:"Un instrumento con tag que comienza con 'A' mide:", opciones:["Caudal de aire","Análisis o composición de un fluido","Altura de tanque","Presión atmosférica"], correcta:1, explicacion:"A = Analyzer. Según ISA-5.1 la letra A indica que el instrumento analiza una propiedad de composición, calidad o concentración del fluido."},
+  {tema:"Tags", texto:"¿Qué letra se usa en ISA-5.1 para indicar la variable 'presión'?", opciones:["P","PR","PS","PE"], correcta:0, explicacion:"P = Pressure (Presión). Es la primera letra del tag. Por ejemplo: PT = Pressure Transmitter, PI = Pressure Indicator, PCV = Pressure Control Valve."},
+  {tema:"Tags", simbolo:"ZT-100", texto:"¿Qué variable mide el instrumento ZT-100?", hint:"Z es una letra poco común en ISA-5.1.", opciones:["Temperatura en zona Z","Posición o desplazamiento","Impedancia eléctrica","Presión en zona cero"], correcta:1, explicacion:"Z = Position (Posición o desplazamiento). ZT = Position Transmitter. Se usa comúnmente para medir la apertura de válvulas o posición de actuadores."},
+  {tema:"Tags", texto:"¿Cuál es el propósito del número de lazo en un tag como FIC-301?", hint:"El 301 no es aleatorio.", opciones:["Indica el número de serie del fabricante","Identifica de forma única el lazo de control al que pertenece","Indica la presión máxima de operación","Es el código de área de la planta"], correcta:1, explicacion:"El número de lazo (301 en este caso) identifica de forma única el lazo de instrumentación. Todos los instrumentos de un mismo lazo de control comparten el mismo número."},
+  {tema:"Tags", simbolo:"TIC-500", texto:"¿Cuántas funciones realiza el TIC-500?", opciones:["Una: medir temperatura","Dos: indicar y controlar temperatura","Tres: medir, indicar y transmitir","Solo controla, no indica"], correcta:1, explicacion:"TIC = Temperature Indicator Controller. Indica el valor de temperatura (I) y lo controla automáticamente (C) mediante una señal de salida a la válvula de control."},
+  {tema:"Tags", texto:"¿Qué tipo de instrumento tiene la letra 'Y' en su tag según ISA-5.1?", opciones:["Instrumento de presión auxiliar","Relé, computador o convertidor de señal","Instrumento de nivel con alarma","Válvula de seguridad"], correcta:1, explicacion:"Y = Relay, Compute, Convert. Se usa para instrumentos que realizan operaciones de cálculo, conversión de señal o funciones de relé lógico en el lazo."},
+  {tema:"Tags", simbolo:"FQI-145", texto:"¿Qué hace el instrumento FQI-145?", hint:"Q = Quantity/Totalize.", opciones:["Mide calidad del flujo","Totaliza e indica el flujo acumulado","Controla la calidad del proceso","Indica presión de fluido"], correcta:1, explicacion:"FQI = Flow Quantity Indicator. Acumula (totaliza) el flujo en el tiempo y lo muestra. Útil para medir volumen total transferido en una operación."},
+  {tema:"Tags", texto:"En la norma ISA-5.1, la letra 'S' en segunda posición indica:", opciones:["Señal analógica","Interruptor (Switch)","Sensor primario","Sistema de control"], correcta:1, explicacion:"S en posición de función = Switch. Un interruptor que actúa (abre o cierra un circuito) cuando la variable medida alcanza un valor de disparo predefinido."},
+  {tema:"Tags", simbolo:"PDT-210", texto:"¿Qué mide el instrumento PDT-210?", hint:"PD = Pressure Differential.", opciones:["Presión puntual en el punto 210","Presión diferencial entre dos puntos","Temperatura de proceso en lazo 210","Densidad del fluido"], correcta:1, explicacion:"PDT = Pressure Differential Transmitter. Mide la diferencia de presión entre dos puntos del proceso y transmite la señal. Se usa en medición de flujo con placa de orificio y en filtros."},
+  {tema:"Tags", texto:"¿Qué representa el tag SDV en un sistema de paro de emergencia?", opciones:["Válvula de control estándar","Válvula de cierre por paro de emergencia (Shutdown Valve)","Sensor de densidad de vapor","Válvula de purga de sistema"], correcta:1, explicacion:"SDV = Shutdown Valve. Forma parte del sistema de paro de emergencia (ESD). Cierra rápidamente ante una señal de paro para proteger el proceso y al personal."},
+  {tema:"Tags", texto:"¿Cuál de estos tags corresponde a un instrumento que SOLO indica sin controlar ni transmitir?", opciones:["TIC-100","FT-200","PI-305","LCV-410"], correcta:2, explicacion:"PI = Pressure Indicator. Solo muestra la presión localmente. No controla (C), no transmite (T) ni genera alarmas. Es el instrumento más simple de lectura local."},
+  {tema:"Tags", simbolo:"LSHH-601", texto:"¿Qué acción dispara el LSHH-601?", hint:"HH = High High (doble alto).", opciones:["Alarma de nivel bajo","Alarma de nivel alto normal","Alarma o paro por nivel muy alto (crítico)","Indicación local de nivel"], correcta:2, explicacion:"LSHH = Level Switch High High. El doble H indica un nivel crítico superior. Generalmente dispara un paro de emergencia o acción de protección más severa que el LSH simple."},
+  {tema:"Tags", texto:"Según ISA-5.1, ¿qué indica la letra 'D' como modificador de variable?", opciones:["Digital","Diferencial","Densidad","Directo"], correcta:1, explicacion:"D como modificador = Differential (Diferencial). Indica que se mide la diferencia entre dos puntos. Ejemplo: PDT = Pressure Differential Transmitter."},
+  {tema:"Tags", texto:"¿Qué tienen en común los tags FT-101, FI-101 y FCV-101?", opciones:["Son el mismo instrumento con diferentes nombres","Pertenecen al mismo lazo de control (lazo 101)","Miden la misma variable en diferentes unidades","Son redundantes por seguridad"], correcta:1, explicacion:"El número 101 identifica el lazo. Todos los instrumentos de un lazo comparten el mismo número: FT-101 mide y transmite, FI-101 indica, FCV-101 es la válvula de control del mismo lazo."},
+  {tema:"Tags", simbolo:"WT-330", texto:"¿Qué variable mide el WT-330?", hint:"W en ISA-5.1 se asocia a peso o fuerza.", opciones:["Velocidad del viento","Peso o fuerza","Temperatura del agua","Nivel de agua"], correcta:1, explicacion:"W = Weight/Force. WT = Weight Transmitter. Mide peso o fuerza y transmite la señal. Se usa en básculas de proceso, reactores y silos."},
+  {tema:"Tags", texto:"¿Por qué es importante que los operadores conozcan la norma ISA-5.1?", opciones:["Para programar controladores PLC","Para interpretar correctamente los P&ID y evitar errores operativos","Para diseñar tuberías de proceso","Solo la necesitan los ingenieros de diseño"], correcta:1, explicacion:"ISA-5.1 es el lenguaje universal del P&ID. Un operador que conoce la norma puede interpretar cualquier diagrama, identificar instrumentos y entender el proceso sin cometer errores operativos."},
+  {tema:"Tags", simbolo:"HIC-700", texto:"¿Qué controla el instrumento HIC-700?", hint:"H en primera posición tiene un significado especial en ISA.", opciones:["Nivel de hidrógeno","Posición manual de válvula (Hand control)","Temperatura de calentador","Presión hidráulica"], correcta:1, explicacion:"H = Hand (Manual). HIC = Hand Indicator Controller. Es un controlador manual que permite al operador ajustar directamente la posición de una válvula u otro elemento final de control."},
+  {tema:"Tags", texto:"¿Qué diferencia hay entre un tag con sufijo 'A' y uno sin sufijo, por ejemplo PT-101 y PT-101A?", opciones:["El sufijo A indica alarma automática","El sufijo A diferencia instrumentos duplicados en el mismo lazo","El sufijo A indica instrumento en área A de la planta","No hay diferencia, son sinónimos"], correcta:1, explicacion:"El sufijo letra (A, B, C...) se usa para diferenciar instrumentos duplicados o paralelos dentro del mismo lazo. PT-101A y PT-101B son dos transmisores de presión del lazo 101, usualmente redundantes."},
+  {tema:"Tags", simbolo:"JT-050", texto:"¿Qué variable mide el instrumento JT-050?", hint:"J en ISA-5.1 se relaciona con potencia.", opciones:["Temperatura de janitor","Potencia o energía eléctrica","Posición de junta","Velocidad de flujo en juntura"], correcta:1, explicacion:"J = Power (Potencia). JT = Power Transmitter. Mide y transmite potencia eléctrica o mecánica en el proceso."},
+  {tema:"Tags", texto:"En un P&ID, ¿qué indica un círculo con una línea horizontal en el centro que contiene un tag?", opciones:["Instrumento montado en campo (local)","Instrumento montado en tablero de control (sala de control)","Instrumento de seguridad","Instrumento fuera de servicio"], correcta:1, explicacion:"Según ISA-5.1, el círculo simple = instrumento en campo. El círculo con línea horizontal = instrumento montado en tablero de control (panel frontal). El círculo con línea doble = instrumento en sistema de control distribuido (DCS)."},
+  {tema:"Tags", texto:"¿Qué indica la letra 'E' como segunda letra en un tag de instrumento?", opciones:["Eléctrico","Elemento sensor primario","Error de medición","Elemento de control final"], correcta:1, explicacion:"E en posición de función = Element (Elemento primario). Es el sensor que está en contacto directo con el proceso. Ejemplo: TE = Temperature Element (termopar, RTD)."},
+
+  // ── SEÑALES (33 preguntas) ───────────────────────────────────────────
+  {tema:"Señales", simbolo:"4–20 mA", texto:"¿Qué tipo de señal es la de 4–20 mA?", hint:"mA = miliamperios.", opciones:["Señal neumática","Señal hidráulica","Señal eléctrica analógica","Señal digital"], correcta:2, explicacion:"4–20 mA es la señal eléctrica analógica estándar en instrumentación. 4 mA = 0% del rango, 20 mA = 100%. El offset de 4 mA permite detectar ruptura de cable (0 mA = falla)."},
+  {tema:"Señales", simbolo:"3–15 PSI", texto:"¿Qué tipo de señal trabaja en el rango 3–15 PSI?", hint:"PSI = libras por pulgada cuadrada. ¿Qué fluido?", opciones:["Señal eléctrica","Señal neumática","Señal hidráulica","Señal digital fieldbus"], correcta:1, explicacion:"3–15 PSI es la señal neumática estándar. Usa aire comprimido limpio y seco. 3 PSI = 0% del rango, 15 PSI = 100%."},
+  {tema:"Señales", simbolo:"—  —  —", texto:"En un P&ID, la línea discontinua representa:", opciones:["Tubería de proceso","Señal eléctrica de instrumento","Señal neumática","Línea hidráulica"], correcta:1, explicacion:"La línea discontinua (- - -) representa señales eléctricas de instrumentación según ISA-5.1, como cables 4–20 mA o señales digitales."},
+  {tema:"Señales", texto:"¿Cuál es la ventaja principal de la señal neumática en zonas con atmósfera explosiva?", opciones:["Es más rápida que la eléctrica","No genera chispas, es intrínsecamente segura","Es más económica","Tiene mayor precisión"], correcta:1, explicacion:"La señal neumática no genera electricidad ni chispas, lo que la hace segura en áreas clasificadas con vapores o gases inflamables (zonas ATEX/NEC)."},
+  {tema:"Señales", texto:"Una señal hidráulica se usa principalmente cuando se requiere:", opciones:["Alta precisión en medición","Gran fuerza para mover actuadores pesados","Comunicación a larga distancia","Velocidad de respuesta muy alta"], correcta:1, explicacion:"Las señales hidráulicas transmiten gran fuerza usando líquido a alta presión. Se usan para accionar válvulas grandes o elementos que requieren mucha fuerza de actuación."},
+  {tema:"Señales", texto:"Si un transmisor de 4–20 mA marca 12 mA, ¿en qué porcentaje del rango está la variable medida?", hint:"Calcula: (12-4)/(20-4) × 100", opciones:["50%","60%","75%","80%"], correcta:0, explicacion:"(12–4)/(20–4) × 100 = 8/16 × 100 = 50%. A 12 mA la variable está exactamente al 50% de su rango de medición."},
+  {tema:"Señales", texto:"¿Qué indica una señal de 0 mA en un circuito de 4–20 mA?", opciones:["La variable está al mínimo","La variable está al máximo","Existe una falla en el circuito (cable roto o cortocircuito)","El instrumento está en modo manual"], correcta:2, explicacion:"En señal 4–20 mA, el valor mínimo válido es 4 mA. Si el sistema detecta 0 mA, significa falla: cable roto, cortocircuito o instrumento sin alimentación. Esto es una ventaja sobre la señal 0–20 mA."},
+  {tema:"Señales", simbolo:"24 VDC", texto:"¿Para qué se usa comúnmente el voltaje de 24 VDC en instrumentación industrial?", opciones:["Alimentación de motores grandes","Alimentación de transmisores e instrumentos de campo","Señal de control neumática","Comunicación de red HART"], correcta:1, explicacion:"24 VDC es el voltaje estándar de alimentación para transmisores, sensores y otros instrumentos de campo en ambientes industriales. Es seguro, eficiente y compatible con la señal 4–20 mA en lazo de dos hilos."},
+  {tema:"Señales", texto:"En un P&ID según ISA-5.1, ¿cómo se representa una señal neumática?", opciones:["Línea continua gruesa","Línea discontinua con círculos","Línea continua con flechas cada cierto tramo","Línea punteada fina"], correcta:1, explicacion:"La señal neumática se representa con línea discontinua y pequeños círculos (o con la notación específica de ISA-5.1). Difiere de la señal eléctrica que es solo línea discontinua sin círculos."},
+  {tema:"Señales", texto:"¿Cuál de estas señales puede transmitirse a mayor distancia sin pérdida de señal significativa?", opciones:["Señal neumática 3–15 PSI","Señal eléctrica 4–20 mA","Señal hidráulica","Señal de voltaje 1–5 VDC"], correcta:1, explicacion:"La señal de corriente 4–20 mA puede transmitirse a distancias de hasta 1000 metros sin pérdida significativa, ya que la corriente es la misma en todo el lazo en serie. Las señales neumáticas tienen limitación de distancia por caída de presión."},
+  {tema:"Señales", texto:"¿Qué es un lazo de dos hilos en instrumentación 4–20 mA?", opciones:["Un circuito con dos cables para alimentación y dos para señal","Un circuito donde los mismos dos cables transportan la alimentación y la señal","Un sistema redundante con dos transmisores","Un protocolo de comunicación digital"], correcta:1, explicacion:"En un lazo de dos hilos, los mismos dos conductores sirven para alimentar el transmisor (24 VDC) y transmitir la señal (4–20 mA) simultáneamente. Reduce cableado y costo de instalación."},
+  {tema:"Señales", texto:"¿Qué protocolo de comunicación digital se superpone sobre la señal 4–20 mA sin interrumpirla?", opciones:["Profibus","Foundation Fieldbus","HART","Modbus RTU"], correcta:2, explicacion:"HART (Highway Addressable Remote Transducer) superpone una señal digital modulada sobre la señal analógica 4–20 mA. Permite comunicación bidireccional con el instrumento sin interrumpir la señal de proceso."},
+  {tema:"Señales", texto:"¿Cuál es la presión de suministro de aire típica para instrumentos neumáticos en la industria?", opciones:["15 PSI","30 PSI","60–100 PSI","150 PSI"], correcta:2, explicacion:"El aire de instrumentos se suministra típicamente a 60–100 PSI (4–7 bar) y se regula a 20 PSI para instrumentos de 3–15 PSI. Debe ser limpio, seco y libre de aceite."},
+  {tema:"Señales", texto:"Una señal de 4–20 mA marca 4 mA. ¿Qué significa esto?", opciones:["Falla en el instrumento","La variable está en 0% de su rango (valor mínimo)","El instrumento está apagado","La señal está saturada"], correcta:1, explicacion:"4 mA corresponde al 0% del rango de medición. Es el valor mínimo válido de la señal. No indica falla; indica que la variable está en su punto mínimo de escala."},
+  {tema:"Señales", texto:"¿Cuál es la principal desventaja de la señal neumática comparada con la eléctrica?", opciones:["Es más peligrosa en zonas explosivas","Tiene limitación de distancia y requiere red de aire limpio y seco","Es más difícil de calibrar","No puede usarse con válvulas de control"], correcta:1, explicacion:"La señal neumática requiere tuberías de aire comprimido (costosas a larga distancia), filtros, secadores y un compresor. La señal eléctrica solo necesita cable y es práctica para grandes distancias."},
+  {tema:"Señales", texto:"¿Qué tipo de señal utiliza un posicionador de válvula neumática para controlar su apertura?", opciones:["Señal digital 0/1","Señal eléctrica 4–20 mA convertida a neumática","Solo señal hidráulica","Señal de voltaje 0–10 VDC"], correcta:1, explicacion:"El posicionador recibe la señal eléctrica 4–20 mA del controlador y la convierte en señal neumática (aire) para accionar el actuador de la válvula. Este dispositivo se llama convertidor I/P (corriente a presión)."},
+  {tema:"Señales", texto:"¿Cuál es la función de un convertidor I/P en un lazo de control?", opciones:["Convierte señal digital a analógica","Convierte señal eléctrica (corriente) a señal neumática (presión)","Convierte señal hidráulica a eléctrica","Amplifica la señal 4–20 mA"], correcta:1, explicacion:"I/P = Current to Pressure. Convierte la señal de corriente 4–20 mA en señal neumática 3–15 PSI para accionar actuadores neumáticos de válvulas. Es el vínculo entre el sistema electrónico y el actuador neumático."},
+  {tema:"Señales", texto:"¿Cuándo se prefiere una señal de voltaje (1–5 VDC o 0–10 VDC) sobre la de corriente (4–20 mA)?", opciones:["En largas distancias","En sistemas con múltiples instrumentos en paralelo dentro de un mismo gabinete","En zonas explosivas","En sistemas neumáticos"], correcta:1, explicacion:"Las señales de voltaje son útiles para conexiones cortas dentro de gabinetes o paneles, donde múltiples entradas analógicas del controlador están muy cerca. En campo se prefiere corriente por su inmunidad al ruido y distancia."},
+  {tema:"Señales", texto:"¿Qué ventaja ofrece Foundation Fieldbus sobre la señal 4–20 mA?", opciones:["Es más económico de instalar","Permite comunicación digital bidireccional con múltiples instrumentos en un solo cable","Es compatible con zonas explosivas sin barreras","No requiere fuente de alimentación"], correcta:1, explicacion:"Foundation Fieldbus es un protocolo digital que permite conectar múltiples instrumentos en un solo cable (topología bus), con comunicación bidireccional, diagnósticos avanzados y mayor precisión que la señal analógica."},
+  {tema:"Señales", texto:"¿Qué indica una señal de 20 mA en un transmisor de presión con rango 0–100 PSI?", opciones:["50 PSI","0 PSI","100 PSI","Falla del instrumento"], correcta:2, explicacion:"20 mA = 100% del rango. Si el rango es 0–100 PSI, entonces 20 mA = 100 PSI. La relación es lineal: 4 mA = 0 PSI, 12 mA = 50 PSI, 20 mA = 100 PSI."},
+  {tema:"Señales", texto:"¿Para qué sirven las barreras Zener en instrumentación?", opciones:["Amplificar señales débiles","Limitar voltaje y corriente para proteger instrumentos en zonas explosivas","Convertir señal neumática a eléctrica","Filtrar ruido en señales digitales"], correcta:1, explicacion:"Las barreras Zener (o barreras de seguridad intrínseca) limitan la energía eléctrica que puede llegar a un área clasificada (explosiva), garantizando que no haya suficiente energía para producir una chispa o ignición."},
+  {tema:"Señales", texto:"¿Cuál de estas señales es DIGITAL (no analógica)?", opciones:["4–20 mA","3–15 PSI","Profibus DP","1–5 VDC"], correcta:2, explicacion:"Profibus DP es un protocolo de comunicación digital industrial. Las otras señales (4–20 mA, 3–15 PSI, 1–5 VDC) son analógicas, donde el valor de la señal varía continuamente para representar la variable de proceso."},
+  {tema:"Señales", texto:"¿Qué pasa si el suministro de aire de instrumentos falla en un sistema neumático?", opciones:["Los instrumentos eléctricos también fallan","Las válvulas neumáticas quedan en su posición de falla (fail-safe)","Solo fallan los transmisores","No pasa nada, tienen batería de respaldo"], correcta:1, explicacion:"Al fallar el aire, las válvulas neumáticas van a su posición de diseño de falla: fail-open (abierta) o fail-close (cerrada), dependiendo del diseño de seguridad del proceso. Esto es parte del análisis de seguridad (HAZOP)."},
+  {tema:"Señales", texto:"¿Qué es la 'señal de referencia' en un lazo de control cerrado?", opciones:["La señal de salida del controlador hacia la válvula","El valor deseado o setpoint que el controlador intenta mantener","La señal de retroalimentación del proceso","La señal de alarma del sistema"], correcta:1, explicacion:"La señal de referencia es el setpoint (SP): el valor deseado de la variable de proceso. El controlador compara constantemente el SP con la variable de proceso (PV) y ajusta la señal de salida para minimizar el error."},
+  {tema:"Señales", texto:"¿Qué tipo de señal utiliza un detector de gases en área clasificada para comunicarse con el panel de control?", opciones:["Solo señal neumática","Señal 4–20 mA con seguridad intrínseca o barreras","Señal hidráulica","Señal de 110 VAC"], correcta:1, explicacion:"Los detectores de gas usan señal 4–20 mA (donde 4 mA = 0% LEL y 20 mA = 100% LEL) con protección de seguridad intrínseca o barreras para operar de forma segura en áreas con atmósfera explosiva."},
+  {tema:"Señales", texto:"¿Cuál es la unidad de ingeniería de la señal neumática estándar en el sistema métrico?", opciones:["PSI","Bar","kPa","Todas son equivalentes: 0.2–1.0 bar = 20–100 kPa = 3–15 PSI"], correcta:3, explicacion:"La señal neumática estándar es 3–15 PSI en sistema inglés, equivalente a 0.2–1.0 bar o 20–100 kPa en sistema métrico. Son la misma señal expresada en diferentes unidades."},
+  {tema:"Señales", texto:"¿Qué indica el término 'señal viva' (live zero) en el contexto de 4–20 mA?", opciones:["La señal está en 20 mA","La señal mínima es 4 mA (no cero), permitiendo detectar fallas","La señal tiene alimentación redundante","El instrumento está activo y operando"], correcta:1, explicacion:"'Live zero' o cero vivo significa que el cero de la escala corresponde a 4 mA, no a 0 mA. Esto permite distinguir entre 'variable en mínimo' (4 mA) y 'falla de circuito' (0 mA). Es una ventaja de diagnóstico clave."},
+  {tema:"Señales", texto:"¿Qué tipo de conexión eléctrica usan los instrumentos de campo con señal HART?", opciones:["Dos hilos (lazo de corriente)","Cuatro hilos siempre","Fibra óptica","Bus de campo Profibus"], correcta:0, explicacion:"HART opera sobre el lazo de corriente de dos hilos estándar (4–20 mA), añadiendo comunicación digital sin necesidad de cableado adicional. Es compatible con la infraestructura existente de instrumentación analógica."},
+  {tema:"Señales", texto:"¿Cuál es la diferencia entre una señal de proceso y una señal de control?", opciones:["Son exactamente lo mismo","La señal de proceso viene del sensor; la señal de control va del controlador hacia la válvula","La señal de proceso es digital; la de control es analógica","La señal de control viene del campo; la de proceso va al tablero"], correcta:1, explicacion:"Señal de proceso (o de medición): viene del transmisor hacia el controlador, representa el estado actual de la variable. Señal de control (o de salida): va del controlador hacia la válvula, le indica cuánto debe abrirse o cerrarse."},
+  {tema:"Señales", texto:"¿Por qué se usa apantallamiento (blindaje) en cables de señal de instrumentación?", opciones:["Para proteger el cable del calor","Para evitar interferencias electromagnéticas que distorsionen la señal","Para aumentar la resistencia mecánica del cable","Para cumplir con normas de color de cableado"], correcta:1, explicacion:"El blindaje (pantalla) en cables de instrumentación protege la señal de interferencias electromagnéticas (EMI) generadas por motores, variadores de frecuencia, cables de potencia y otros equipos cercanos que podrían corromper la señal."},
+  {tema:"Señales", texto:"¿Qué significa 'fail-safe' en el contexto de señales de instrumentación?", opciones:["El instrumento no puede fallar nunca","Ante falla de señal o energía, el sistema adopta la posición más segura para el proceso","La señal tiene respaldo automático","El instrumento tiene doble certificación de seguridad"], correcta:1, explicacion:"Fail-safe significa que ante cualquier falla (pérdida de señal, corte de energía, rotura de cable), el instrumento o elemento final de control adopta la posición predeterminada más segura para proteger el proceso, equipos y personas."},
+  {tema:"Señales", texto:"¿Cuál es el rango de señal analógica de voltaje más común en instrumentación industrial?", opciones:["0–5 VDC","1–5 VDC","0–10 VDC","±15 VDC"], correcta:1, explicacion:"1–5 VDC es el equivalente en voltaje al estándar 4–20 mA. También tiene cero vivo (1V) para detección de fallas. Se usa principalmente en conexiones cortas dentro de paneles y controladores."},
+
+  // ── VÁLVULAS Y ACTUADORES (33 preguntas) ────────────────────────────
+  {tema:"Válvulas", texto:"¿Qué indica un actuador representado con triángulo invertido sobre una válvula en P&ID?", opciones:["Válvula de bola manual","Válvula de control con actuador neumático","Válvula de retención","Válvula mariposa eléctrica"], correcta:1, explicacion:"El triángulo invertido sobre el cuerpo de la válvula indica actuador neumático según ISA-5.1. Es el símbolo estándar para válvulas de control neumáticas en P&ID."},
+  {tema:"Válvulas", texto:"Una válvula 'fail-close' (FC) ante falla de señal:", opciones:["Queda en la última posición","Abre completamente","Cierra completamente","Activa una alarma sin moverse"], correcta:2, explicacion:"FC = Fail Close. Ante falla de señal o aire, la válvula cierra por seguridad. Se usa cuando cerrar es la acción más segura para el proceso."},
+  {tema:"Válvulas", texto:"¿Cuál es la función principal de una válvula de retención (check valve)?", opciones:["Regular el flujo continuamente","Permitir flujo en una sola dirección","Aislar secciones manualmente","Aliviar presión del sistema"], correcta:1, explicacion:"La válvula de retención permite flujo solo en una dirección, evitando contraflujo que podría dañar bombas o compresores."},
+  {tema:"Válvulas", texto:"Un actuador eléctrico en válvula de control se usa principalmente cuando:", opciones:["Se requiere respuesta hidráulica muy rápida","No hay suministro de aire comprimido","Se trabaja a muy alta temperatura","El proceso requiere flujo bidireccional"], correcta:1, explicacion:"Los actuadores eléctricos se usan cuando no hay red neumática disponible o cuando se requiere posicionamiento preciso con retroalimentación digital."},
+  {tema:"Válvulas", texto:"¿Qué tipo de válvula es más adecuada para on/off en líneas grandes de baja caída de presión?", opciones:["Válvula de globo","Válvula de aguja","Válvula de mariposa","Válvula de alivio"], correcta:2, explicacion:"La válvula de mariposa es ideal para on/off en líneas grandes: compacta, ligera y con poca restricción al flujo cuando está completamente abierta."},
+  {tema:"Válvulas", texto:"¿Cuál es la característica principal de una válvula de globo?", opciones:["Solo sirve para aislar completamente el flujo","Es ideal para regulación continua y precisa del flujo","No puede usarse con actuadores automáticos","Solo funciona en posición horizontal"], correcta:1, explicacion:"La válvula de globo es excelente para regulación continua del flujo gracias a su diseño que permite un control preciso de la apertura. Es la válvula de control más común en procesos industriales."},
+  {tema:"Válvulas", texto:"¿Cuándo se utiliza una válvula de compuerta (gate valve) en el proceso?", opciones:["Para regular el flujo de forma continua","Para aislar secciones del proceso (on/off completo)","Para aliviar presión del sistema","Para controlar temperatura"], correcta:1, explicacion:"La válvula de compuerta está diseñada para aislamiento total: completamente abierta o completamente cerrada. No debe usarse para regular flujo porque en posición parcialmente abierta sufre erosión y daño."},
+  {tema:"Válvulas", texto:"¿Qué es una válvula PSV y cuándo actúa?", opciones:["Válvula de control de presión que actúa por señal del controlador","Válvula de seguridad que abre automáticamente al superar la presión de diseño","Válvula de purga manual de presión","Válvula solenoide de presión variable"], correcta:1, explicacion:"PSV = Pressure Safety Valve. Es un dispositivo de seguridad que abre automáticamente cuando la presión supera el valor de ajuste (set point), descargando fluido para proteger el equipo de sobrepresión."},
+  {tema:"Válvulas", texto:"¿Cuál es la diferencia entre una válvula PSV y una PRV?", opciones:["Son exactamente lo mismo, solo cambia el fabricante","PSV abre de golpe (pop action) para gas/vapor; PRV puede modular para líquidos","PSV es para alta presión; PRV es para baja presión","PSV es automática; PRV es manual"], correcta:1, explicacion:"PSV (Safety Valve) típicamente abre en forma instantánea (pop action) y se usa para gas o vapor. PRV (Relief Valve) puede modular gradualmente y se usa para líquidos. Ambas son válvulas de alivio pero con características de apertura diferentes."},
+  {tema:"Válvulas", texto:"¿Qué es una válvula 'fail-open' (FO) y cuándo se usa?", opciones:["Una válvula que solo puede abrirse manualmente","Una válvula que ante falla de señal queda abierta, usada cuando cerrar sería peligroso","Una válvula que falla frecuentemente en posición abierta","Una válvula de apertura rápida para emergencias"], correcta:1, explicacion:"FO = Fail Open. Ante falla, la válvula queda abierta. Se usa cuando cerrar podría ser más peligroso que abrir, por ejemplo en sistemas de enfriamiento de reactores o en líneas de suministro crítico."},
+  {tema:"Válvulas", texto:"¿Qué hace el posicionador en una válvula de control neumática?", opciones:["Mide la presión del proceso","Garantiza que la apertura real de la válvula corresponda exactamente a la señal de control","Controla el caudal del proceso","Activa alarmas de posición"], correcta:1, explicacion:"El posicionador compara la posición real del vástago de la válvula con la señal de control y corrige cualquier diferencia, compensando la fricción y la presión del proceso para lograr una posición precisa."},
+  {tema:"Válvulas", texto:"¿Qué tipo de válvula se usa para aplicaciones que requieren flujo de muy baja tasa con control muy preciso?", opciones:["Válvula de mariposa","Válvula de compuerta","Válvula de aguja","Válvula de bola"], correcta:2, explicacion:"La válvula de aguja permite un control muy fino del flujo gracias a su asiento cónico de pequeño diámetro. Se usa en sistemas de muestreo, calibración, instrumentación y flujos muy pequeños."},
+  {tema:"Válvulas", texto:"¿Cuál es la característica principal que hace a la válvula de bola ideal para aplicaciones de on/off?", opciones:["Su apertura gradual y precisa","Su diseño de cuarto de vuelta (90°) que permite abrir/cerrar completamente con rapidez","Su capacidad de regular flujo a presiones muy altas","Su costo bajo en tamaños grandes"], correcta:1, explicacion:"La válvula de bola se abre y cierra completamente con solo un cuarto de vuelta (90°). Es rápida, tiene baja caída de presión cuando está abierta y sella perfectamente cuando está cerrada."},
+  {tema:"Válvulas", texto:"¿Qué es un actuador de membrana (diafragma) en una válvula neumática?", opciones:["Un sensor de presión en la válvula","El mecanismo que convierte la presión de aire en fuerza lineal para mover el vástago","Un filtro de aire para el actuador","Un transmisor de posición de válvula"], correcta:1, explicacion:"El actuador de membrana usa una membrana flexible sobre la que actúa el aire de instrumento para generar una fuerza lineal que mueve el vástago de la válvula. Es el tipo más común en válvulas de control neumáticas."},
+  {tema:"Válvulas", texto:"¿Cuándo se recomienda usar una válvula de mariposa en lugar de una de globo?", opciones:["Cuando se requiere control muy preciso de flujo pequeño","En líneas grandes (>4 pulgadas) donde el costo y peso de una válvula de globo son prohibitivos","Cuando el fluido es corrosivo","En sistemas de alta presión diferencial"], correcta:1, explicacion:"En líneas grandes, las válvulas de globo son costosas, pesadas y tienen alta caída de presión. La mariposa es más económica, liviana y compacta, aunque menos precisa para control fino."},
+  {tema:"Válvulas", texto:"¿Qué es la 'característica de flujo' de una válvula de control?", opciones:["La velocidad máxima del fluido en la válvula","La relación entre el recorrido de apertura del obturador y el flujo que pasa","La presión diferencial máxima que soporta","El coeficiente de cavitación de la válvula"], correcta:1, explicacion:"La característica de flujo describe cómo varía el caudal en función del porcentaje de apertura. Las más comunes son: lineal (flujo proporcional a apertura), igual porcentaje (más sensible en posiciones altas) y rápida apertura."},
+  {tema:"Válvulas", texto:"¿Qué pasa con el resorte de un actuador neumático de acción directa cuando falla el aire?", opciones:["El resorte se comprime y cierra la válvula","El resorte empuja el vástago a su posición de falla (fail-safe)","El resorte no tiene función de seguridad","El resorte bloquea la válvula en posición actual"], correcta:1, explicacion:"En actuadores de membrana con resorte, el resorte define la posición de falla (fail-safe). Cuando falla el aire, el resorte empuja el vástago a la posición de diseño de seguridad (abierta o cerrada)."},
+  {tema:"Válvulas", texto:"¿Qué es la Cv (coeficiente de flujo) de una válvula?", opciones:["La velocidad del fluido en galones por minuto","Un número que indica el caudal de agua en GPM que pasa con 1 PSI de caída de presión a apertura completa","El coeficiente de expansión del asiento","El voltaje de operación del actuador"], correcta:1, explicacion:"Cv es el coeficiente de caudal de una válvula: el número de galones de agua por minuto que fluyen a través de la válvula con una caída de presión de 1 PSI con la válvula totalmente abierta. Se usa para dimensionar válvulas."},
+  {tema:"Válvulas", texto:"¿Cuál es la diferencia principal entre una válvula de control y una válvula de aislamiento?", opciones:["Solo el tamaño difiere","La de control regula continuamente el flujo; la de aislamiento solo abre o cierra completamente","La de control es manual; la de aislamiento es automática","No hay diferencia técnica"], correcta:1, explicacion:"Válvula de control: regula el flujo de forma continua y proporcional (posición variable). Válvula de aislamiento: solo se usa en dos posiciones, totalmente abierta o totalmente cerrada, para aislar secciones del proceso."},
+  {tema:"Válvulas", texto:"¿Qué es la cavitación en una válvula de control y por qué es dañina?", opciones:["La acumulación de sólidos en el asiento","La formación y colapso de burbujas de vapor que erosiona el metal","El exceso de velocidad del fluido","La vibración por flujo pulsante"], correcta:1, explicacion:"La cavitación ocurre cuando la presión local cae por debajo de la presión de vapor del líquido, formando burbujas que colapsan violentamente al recuperar presión. Esto erosiona el asiento, obturador y cuerpo de la válvula, reduciendo su vida útil."},
+  {tema:"Válvulas", texto:"¿Para qué sirve el sello de vástago (packing) en una válvula de control?", opciones:["Para guiar el movimiento del vástago","Para evitar fugas del fluido de proceso hacia la atmósfera a través del vástago","Para lubricar el vástago","Para medir la posición del vástago"], correcta:1, explicacion:"El packing (empaquetadura o sello de vástago) es el sello que rodea el vástago donde sale del cuerpo de la válvula. Evita fugas del fluido de proceso hacia el exterior, siendo crítico para seguridad y medio ambiente."},
+  {tema:"Válvulas", texto:"¿Qué tipo de válvula se usa típicamente como válvula de alivio en sistemas de vapor?", opciones:["Válvula de mariposa","Válvula de bola","Válvula de seguridad tipo resorte (PSV)","Válvula de compuerta"], correcta:2, explicacion:"Las válvulas PSV de tipo resorte son el estándar para protección por sobrepresión en sistemas de vapor. Están diseñadas para abrir rápidamente ante sobrepresión y recerrar cuando la presión baja al valor de ajuste."},
+  {tema:"Válvulas", texto:"¿Qué es un actuador de doble efecto (double-acting) en válvulas neumáticas?", opciones:["Un actuador con dos membranas independientes","Un actuador que usa aire para abrir Y para cerrar la válvula (sin resorte)","Un actuador con posición de falla doble","Un actuador redundante con dos alimentaciones de aire"], correcta:1, explicacion:"El actuador de doble efecto usa aire en ambas camaras: una cámara recibe aire para abrir y la otra para cerrar. No tiene resorte. Requiere una válvula solenoide de cuatro vías para controlar el flujo de aire. Para fail-safe necesita acumulador de aire."},
+  {tema:"Válvulas", texto:"¿Cuál es la función de una válvula solenoide (SOV) en un sistema neumático de válvulas?", opciones:["Medir el flujo de aire al actuador","Convertir señal eléctrica en señal neumática para controlar el paso de aire al actuador","Filtrar el aire de instrumentos","Indicar la posición de la válvula de control"], correcta:1, explicacion:"La válvula solenoide convierte una señal eléctrica (on/off) en acción neumática, controlando el paso de aire hacia el actuador de la válvula. Se usa para on/off rápido y en sistemas de paro de emergencia (ESD)."},
+  {tema:"Válvulas", texto:"¿Qué indica el símbolo de una 'X' dentro del cuerpo de una válvula en un P&ID?", opciones:["Válvula dañada o fuera de servicio","Válvula de bola (ball valve)","Válvula bloqueada o normalmente cerrada","Válvula de seguridad"], correcta:1, explicacion:"En P&ID según ISA-5.1, el asiento cruzado (X) dentro del símbolo de la válvula indica válvula de bola. La bola tiene un orificio que alinea con la tubería cuando está abierta."},
+  {tema:"Válvulas", texto:"¿Cuándo es más adecuado usar un actuador hidráulico en lugar de uno neumático?", opciones:["Cuando se necesita velocidad de respuesta más lenta","Cuando se requieren fuerzas muy grandes para mover válvulas de gran diámetro o alta presión diferencial","Cuando el proceso usa fluidos corrosivos","En zonas clasificadas con atmósfera explosiva"], correcta:1, explicacion:"Los actuadores hidráulicos generan fuerzas mucho mayores que los neumáticos del mismo tamaño (trabajan a 1500–3000 PSI vs 60–100 PSI del aire). Se usan para válvulas grandes en ductos, oleoductos y aplicaciones de alta presión diferencial."},
+  {tema:"Válvulas", texto:"¿Qué es una válvula de tres vías y cuándo se utiliza?", opciones:["Una válvula con tres posiciones de apertura","Una válvula con tres puertos que puede dirigir flujo entre dos caminos o mezclar corrientes","Una válvula que controla tres parámetros simultáneamente","Una válvula con triple sello para alta presión"], correcta:1, explicacion:"La válvula de tres vías tiene tres conexiones y puede desviar (divertir) el flujo de una entrada a dos salidas, o mezclar dos entradas en una salida. Se usa en sistemas de derivación (bypass), mezcla de corrientes y conexión de transmisores diferenciales."},
+  {tema:"Válvulas", texto:"¿Qué significa que una válvula PSV tenga un 'set point' de 150 PSI?", opciones:["La válvula opera normalmente a 150 PSI","La válvula abrirá automáticamente cuando la presión alcance 150 PSI","La válvula fue instalada hace 150 días","El actuador requiere 150 PSI para operar"], correcta:1, explicacion:"El set point (punto de ajuste) de una PSV es la presión a la que la válvula comienza a abrir. A 150 PSI la válvula se activa para aliviar la presión y proteger el sistema. Este valor se configura mediante la tensión del resorte."},
+  {tema:"Válvulas", texto:"¿Por qué no se debe usar una válvula de compuerta para regulación parcial del flujo?", opciones:["Porque es demasiado rápida para regulación","Porque en posición parcial el flujo erosiona el obturador y causa vibración y daño","Porque no tiene actuador automático","Porque tiene muy alta caída de presión cuando está abierta"], correcta:1, explicacion:"La compuerta (gate) está diseñada solo para abierta total o cerrada total. En posición parcial, el flujo turbulento genera cavitación, erosión del obturador y vibración severa que daña la válvula rápidamente."},
+  {tema:"Válvulas", texto:"¿Qué tipo de actuador se usa en válvulas que deben abrir o cerrar en menos de 1 segundo?", opciones:["Actuador eléctrico de motor","Actuador neumático de simple efecto","Actuador hidráulico de alta presión","Actuador eléctrico de tornillo sin fin"], correcta:1, explicacion:"Los actuadores neumáticos de membrana o pistón tienen tiempos de respuesta de milisegundos a fracciones de segundo, siendo los más rápidos para operación de emergencia. Los eléctricos son más lentos por la inercia del motor."},
+  {tema:"Válvulas", texto:"¿Cuál es la función del by-pass de una válvula de control?", opciones:["Aumentar el flujo en condiciones normales","Permitir operación manual del proceso mientras la válvula de control está en mantenimiento","Proteger la válvula de sobrepresión","Conectar la válvula al sistema de instrumentación"], correcta:1, explicacion:"El by-pass (o bypass) es una línea paralela con válvula manual que rodea la válvula de control. Permite que el operador controle manualmente el flujo con la válvula manual mientras la válvula de control está fuera de servicio para mantenimiento."},
+  {tema:"Válvulas", texto:"¿Qué es el 'trim' de una válvula de control?", opciones:["El recubrimiento exterior de la válvula","El conjunto interno formado por el obturador, asiento y vástago que controla el flujo","El actuador neumático de la válvula","El posicionador electrónico"], correcta:1, explicacion:"El trim es el conjunto de partes internas de la válvula que están en contacto directo con el fluido y determinan las características de flujo: obturador (plug), asiento (seat) y vástago (stem). El diseño del trim define la característica de flujo de la válvula."}
+];
+
+const POR_PARTIDA = 15;
+let partida = [], actual = 0, puntaje = 0, respondidas = 0;
+let porTema = {};
+
+function mezclar(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJuego() {
+  actual = 0; puntaje = 0; respondidas = 0;
+  porTema = { Tags: {ok:0,total:0}, Señales: {ok:0,total:0}, Válvulas: {ok:0,total:0} };
+  const mezclado = mezclar([...banco]);
+  const tags = mezclar(mezclado.filter(p => p.tema === 'Tags')).slice(0, 5);
+  const senales = mezclar(mezclado.filter(p => p.tema === 'Señales')).slice(0, 5);
+  const valvulas = mezclar(mezclado.filter(p => p.tema === 'Válvulas')).slice(0, 5);
+  partida = mezclar([...tags, ...senales, ...valvulas]);
+  show('juego');
+  mostrarPregunta();
+}
+
+function mostrarPregunta() {
+  const p = partida[actual];
+  document.getElementById('badge-tema').textContent = p.tema;
+  document.getElementById('badge-score').textContent = puntaje + ' / ' + respondidas;
+  document.getElementById('pregunta-num').textContent = 'Pregunta ' + (actual + 1) + ' de ' + POR_PARTIDA;
+  document.getElementById('progreso').style.width = ((actual / POR_PARTIDA) * 100) + '%';
+  const sim = document.getElementById('simbolo-display');
+  if (p.simbolo) { sim.textContent = p.simbolo; sim.style.display = 'inline-block'; }
+  else { sim.style.display = 'none'; }
+  document.getElementById('pregunta-texto').textContent = p.texto;
+  document.getElementById('pregunta-hint').textContent = p.hint ? ('Pista: ' + p.hint) : '';
+  const opDiv = document.getElementById('opciones');
+  opDiv.innerHTML = '';
+  p.opciones.forEach((op, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opcion';
+    btn.textContent = op;
+    btn.onclick = () => responder(i);
+    opDiv.appendChild(btn);
+  });
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('btn-siguiente').style.display = 'none';
+}
+
+function responder(idx) {
+  const p = partida[actual];
+  document.querySelectorAll('.opcion').forEach(b => b.disabled = true);
+  respondidas++;
+  porTema[p.tema].total++;
+  const ok = idx === p.correcta;
+  if (ok) { puntaje++; porTema[p.tema].ok++; }
+  document.querySelectorAll('.opcion')[p.correcta].classList.add('correcta');
+  if (!ok) document.querySelectorAll('.opcion')[idx].classList.add('incorrecta');
+  document.getElementById('badge-score').textContent = puntaje + ' / ' + respondidas;
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.className = 'feedback-box ' + (ok ? 'ok' : 'fail');
+  fb.innerHTML = (ok ? '<b>Correcto.</b> ' : '<b>Incorrecto.</b> ') + p.explicacion;
+  const btn = document.getElementById('btn-siguiente');
+  btn.style.display = 'block';
+  btn.textContent = actual < POR_PARTIDA - 1 ? 'Siguiente pregunta' : 'Ver resultados';
+}
+
+function siguiente() {
+  actual++;
+  if (actual >= POR_PARTIDA) { mostrarResultado(); return; }
+  mostrarPregunta();
+}
+
+function mostrarResultado() {
+  show('resultado');
+  document.getElementById('res-score').textContent = puntaje;
+  let msg = puntaje >= 13 ? 'Excelente dominio del P&ID. Operador listo para la planta.' :
+            puntaje >= 10 ? 'Buen desempeño. Repasar algunos conceptos antes de operar.' :
+            puntaje >= 7  ? 'Conocimiento básico. Se recomienda entrenamiento adicional.' :
+                            'Requiere capacitación completa antes de operar equipos.';
+  document.getElementById('res-msg').textContent = msg;
+  const td = document.getElementById('res-temas');
+  td.innerHTML = '';
+  ['Tags', 'Señales', 'Válvulas'].forEach(t => {
+    const d = porTema[t];
+    const pct = d.total > 0 ? Math.round((d.ok / d.total) * 100) : 0;
+    td.innerHTML += '<div class="tema-card"><div class="tema-titulo">' + t + '</div><div class="tema-valor">' + pct + '%</div></div>';
+  });
+  const areas = ['Tags', 'Señales', 'Válvulas'].filter(t => porTema[t].total > 0 && (porTema[t].ok / porTema[t].total) < 0.6);
+  document.getElementById('res-areas').textContent = areas.length > 0
+    ? 'Áreas de oportunidad: ' + areas.join(', ') + '. Se recomienda repasar estos temas con tu instructor.'
+    : 'Buen desempeño en todos los temas. Sin áreas críticas detectadas.';
+}
+
+function reiniciar() { iniciarJuego(); }
+</script>
+</body>
+</html>
