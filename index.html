@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PID Academy – Instrumentación Industrial</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#1e2530; --surface3:#252d3a;
+  --border:#2a3441; --accent:#2f80ed; --accent2:#56ccf2;
+  --success:#27ae60; --danger:#e74c3c; --warning:#f39c12;
+  --text:#e6edf3; --text2:#8b949e; --text3:#6e7681;
+  --glow:rgba(47,128,237,.18); --radius:14px; --radius-sm:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(47,128,237,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(47,128,237,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.screen{display:none;position:relative;z-index:1;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* TOP BAR */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:rgba(13,17,23,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.logo{font-family:'Syne',sans-serif;font-size:1.2rem;color:var(--accent2);letter-spacing:-.02em}
+.logo span{color:var(--text3)}
+.btn-back{display:flex;align-items:center;gap:5px;background:none;border:none;color:var(--text2);cursor:pointer;font-family:inherit;font-size:.85rem;padding:4px 0;transition:color .2s}
+.btn-back:hover{color:var(--text)}
+
+/* MENU MAIN */
+.menu-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:32px}
+.menu-hero{text-align:center}
+.menu-hero h1{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,3.2rem);line-height:1.1;background:linear-gradient(135deg,#56ccf2,#2f80ed 50%,#9b59b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.menu-hero p{color:var(--text2);font-size:1rem;margin-top:8px;max-width:460px;margin-inline:auto}
+.stage-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;max-width:860px;width:100%}
+.stage-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 22px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
+.stage-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity .2s}
+.stage-card:nth-child(1)::before{background:linear-gradient(90deg,#2f80ed,#56ccf2)}
+.stage-card:nth-child(2)::before{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+.stage-card:nth-child(3)::before{background:linear-gradient(90deg,#f39c12,#e67e22)}
+.stage-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 32px var(--glow)}
+.stage-card:hover::before{opacity:1}
+.stage-num{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:12px}
+.s1 .stage-num{background:rgba(47,128,237,.18);color:var(--accent2)}
+.s2 .stage-num{background:rgba(39,174,96,.18);color:#2ecc71}
+.s3 .stage-num{background:rgba(243,156,18,.18);color:#f39c12}
+.stage-card h3{font-size:1rem;font-weight:600;margin-bottom:5px}
+.stage-card p{color:var(--text2);font-size:.85rem;line-height:1.5}
+.stage-badge{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;letter-spacing:.04em}
+.s1 .stage-badge{background:rgba(47,128,237,.18);color:var(--accent2)}
+.s2 .stage-badge{background:rgba(39,174,96,.18);color:#2ecc71}
+.s3 .stage-badge{background:rgba(243,156,18,.18);color:#f39c12}
+
+/* SUBMENU */
+.submenu-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 20px;gap:28px}
+.submenu-title{text-align:center}
+.submenu-title h2{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,4vw,2.2rem)}
+.submenu-title p{color:var(--text2);font-size:.9rem;margin-top:6px}
+.game-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;max-width:800px;width:100%}
+.game-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 20px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;text-align:center}
+.game-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 32px var(--glow)}
+.game-card .gc-icon{font-size:2.4rem;margin-bottom:10px}
+.game-card h3{font-size:.98rem;font-weight:600;margin-bottom:5px}
+.game-card p{color:var(--text2);font-size:.82rem;line-height:1.4}
+.game-card .gc-badge{display:inline-block;margin-top:10px;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600}
+.gc-badge-blue{background:rgba(47,128,237,.18);color:var(--accent2)}
+.gc-badge-green{background:rgba(39,174,96,.18);color:#2ecc71}
+.gc-badge-yellow{background:rgba(243,156,18,.18);color:#f39c12}
+.gc-badge-purple{background:rgba(155,89,182,.18);color:#c39bd3}
+
+/* TEACH */
+.teach-wrap{flex:1;padding:30px 20px;max-width:800px;margin:0 auto;width:100%}
+.teach-wrap h2{font-family:'Syne',sans-serif;font-size:1.6rem;margin-bottom:5px}
+.teach-wrap .sub{color:var(--text2);font-size:.88rem;margin-bottom:24px}
+.info-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:16px;animation:fadeUp .3s ease both}
+.info-block h3{color:var(--accent2);font-size:.95rem;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.tag-example{display:inline-flex;align-items:center;font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin:6px 0 12px}
+.tag-l1{color:#56ccf2}.tag-l2{color:#2ecc71}.tag-l3{color:#f39c12}.tag-num{color:var(--text2)}
+.tag-legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:8px}
+.tag-leg-item{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 11px;font-size:.83rem}
+.tag-leg-item .letter{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;min-width:20px}
+.tag-leg-item .meaning{color:var(--text2)}
+.signal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:8px}
+.signal-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px;text-align:center}
+.signal-card .sig-icon{font-size:1.8rem;margin-bottom:5px}
+.signal-card .sig-name{font-weight:600;font-size:.9rem}
+.signal-card .sig-desc{color:var(--text2);font-size:.78rem;margin-top:3px;line-height:1.4}
+.valve-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px;margin-top:8px}
+.valve-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px}
+.valve-card .v-icon{font-size:1.6rem;margin-bottom:6px}
+.valve-card .v-name{font-weight:600;font-size:.9rem;color:var(--accent2)}
+.valve-card .v-desc{color:var(--text2);font-size:.8rem;margin-top:3px;line-height:1.4}
+.valve-card .v-tip{color:var(--warning);font-size:.76rem;margin-top:5px;font-style:italic}
+.act-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px;margin-top:8px}
+.act-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px}
+.act-card .a-icon{font-size:1.6rem;margin-bottom:6px}
+.act-card .a-name{font-weight:600;color:#2ecc71;font-size:.9rem}
+.act-card .a-desc{color:var(--text2);font-size:.8rem;margin-top:3px;line-height:1.4}
+
+/* QUIZ GAME */
+.game-wrap{flex:1;padding:24px 20px;max-width:700px;margin:0 auto;width:100%}
+.game-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.game-title-text{font-family:'Syne',sans-serif;font-size:1.2rem}
+.hint-btn{display:flex;align-items:center;gap:5px;background:rgba(243,156,18,.15);border:1px solid rgba(243,156,18,.35);color:#f39c12;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:600;transition:background .2s}
+.hint-btn:hover{background:rgba(243,156,18,.25)}
+.hint-btn:disabled{opacity:.4;cursor:not-allowed}
+.progress-bar-wrap{margin-bottom:16px}
+.progress-label{display:flex;justify-content:space-between;color:var(--text2);font-size:.8rem;margin-bottom:5px}
+.progress-bar{height:5px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .4s ease}
+.score-display{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 11px;font-size:.82rem;font-weight:600;color:var(--accent2)}
+.question-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:14px;animation:fadeUp .3s ease}
+.question-tag{font-size:.75rem;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.question-text{font-size:1.08rem;line-height:1.55}
+.hint-box{background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.3);border-radius:var(--radius-sm);padding:10px 14px;color:#f5c26b;font-size:.85rem;line-height:1.5;margin-top:12px;display:none}
+.hint-box.visible{display:block;animation:fadeUp .25s ease}
+.options-grid{display:flex;flex-direction:column;gap:8px}
+.option-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;color:var(--text);cursor:pointer;text-align:left;font-family:inherit;font-size:.92rem;line-height:1.4;transition:border-color .15s,background .15s,transform .1s;display:flex;align-items:flex-start;gap:10px}
+.option-btn .opt-letter{flex-shrink:0;width:24px;height:24px;border-radius:6px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;color:var(--text2);transition:background .15s,color .15s}
+.option-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(47,128,237,.08);transform:translateX(3px)}
+.option-btn:hover:not(:disabled) .opt-letter{background:var(--accent);color:#fff}
+.option-btn.correct{border-color:var(--success)!important;background:rgba(39,174,96,.12)!important}
+.option-btn.correct .opt-letter{background:var(--success)!important;color:#fff!important}
+.option-btn.wrong{border-color:var(--danger)!important;background:rgba(231,76,60,.12)!important}
+.option-btn.wrong .opt-letter{background:var(--danger)!important;color:#fff!important}
+.option-btn:disabled{cursor:not-allowed}
+.feedback-box{border-radius:var(--radius-sm);padding:12px 16px;margin-top:12px;font-size:.87rem;line-height:1.55;display:none;animation:fadeUp .25s ease}
+.feedback-box.visible{display:flex;align-items:flex-start;gap:9px}
+.feedback-box.fb-ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#6fcf97}
+.feedback-box.fb-fail{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#eb7070}
+.feedback-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.next-btn{width:100%;margin-top:12px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-family:inherit;font-size:.95rem;font-weight:600;padding:13px;cursor:pointer;transition:background .2s,transform .1s,box-shadow .2s;display:none}
+.next-btn.visible{display:block;animation:fadeUp .2s ease}
+.next-btn:hover{background:#1a6fd6;transform:translateY(-2px);box-shadow:0 6px 20px rgba(47,128,237,.35)}
+
+/* RESULT */
+.result-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;gap:16px}
+.result-emoji{font-size:3.5rem;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+.result-title{font-family:'Syne',sans-serif;font-size:1.8rem}
+.result-score{font-size:3rem;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent2)}
+.result-breakdown{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.rb-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;min-width:90px}
+.rb-val{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent2)}
+.rb-label{color:var(--text3);font-size:.75rem;margin-top:1px}
+.result-msg{color:var(--text2);font-size:.95rem;max-width:380px}
+.result-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:var(--radius-sm);padding:11px 20px;font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(47,128,237,.4)}
+.btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
+
+/* ══════ MEMORAMA ══════ */
+#screen-memorama .game-wrap{max-width:780px}
+.memo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.memo-stats{display:flex;gap:10px}
+.memo-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:.82rem;font-weight:600;color:var(--accent2)}
+.memo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:600px;margin:0 auto}
+@media(max-width:500px){.memo-grid{grid-template-columns:repeat(3,1fr)}}
+.memo-card{aspect-ratio:1;cursor:pointer;perspective:600px}
+.memo-card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1);border-radius:var(--radius-sm)}
+.memo-card.flipped .memo-card-inner,.memo-card.matched .memo-card-inner{transform:rotateY(180deg)}
+.memo-face{position:absolute;inset:0;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.memo-back{background:var(--surface2);border:1px solid var(--border);font-size:1.6rem}
+.memo-front{background:var(--surface);border:2px solid var(--accent);transform:rotateY(180deg);font-size:.8rem;font-weight:600;text-align:center;padding:8px;color:var(--text);line-height:1.3}
+.memo-card.matched .memo-front{border-color:var(--success);background:rgba(39,174,96,.12);color:#6fcf97}
+.memo-msg{text-align:center;margin-top:20px;font-family:'Syne',sans-serif;font-size:1.4rem;color:var(--accent2);display:none}
+.memo-msg.visible{display:block;animation:fadeUp .3s ease}
+
+/* ══════ SOPA DE LETRAS ══════ */
+#screen-sopa .game-wrap{max-width:780px}
+.sopa-layout{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+@media(max-width:640px){.sopa-layout{grid-template-columns:1fr}}
+.sopa-grid-wrap{overflow-x:auto}
+.sopa-grid{display:inline-grid;gap:2px;user-select:none;-webkit-user-select:none}
+.sopa-cell{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;background:var(--surface);border:1px solid var(--border);border-radius:5px;cursor:pointer;transition:background .15s,color .15s;color:var(--text)}
+.sopa-cell.selecting{background:rgba(47,128,237,.35);color:#fff;border-color:var(--accent)}
+.sopa-cell.found{background:rgba(39,174,96,.25);color:#6fcf97;border-color:var(--success);cursor:default}
+.word-list{min-width:140px}
+.word-list h4{font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.word-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;margin-bottom:5px;background:var(--surface);border:1px solid var(--border);transition:background .2s}
+.word-item.found{background:rgba(39,174,96,.12);border-color:var(--success);color:#6fcf97;text-decoration:line-through}
+.word-item .wi-icon{font-size:.9rem}
+.sopa-timer{font-family:'Syne',sans-serif;font-size:2rem;color:var(--accent2);text-align:center;margin:10px 0}
+.sopa-info{color:var(--text2);font-size:.82rem;text-align:center;margin-top:4px}
+
+/* ══════ ADIVINA LA PALABRA (AHORCADO) ══════ */
+.ah-letter-box{display:inline-flex;align-items:center;justify-content:center;width:36px;height:44px;border-bottom:3px solid var(--border);font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--text);transition:border-color .2s,color .2s}
+.ah-letter-box.revealed{border-color:var(--accent2);color:var(--accent2)}
+.ah-letter-box.wrong-reveal{border-color:var(--danger);color:var(--danger)}
+.ah-key{display:inline-flex;align-items:center;justify-content:center;width:36px;height:38px;margin:3px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s,opacity .2s;color:var(--text)}
+.ah-key:hover:not(:disabled){background:var(--accent);color:#fff;transform:scale(1.08)}
+.ah-key:disabled{opacity:.3;cursor:not-allowed}
+.ah-key.hit{background:rgba(39,174,96,.2);border-color:var(--success);color:#6fcf97}
+.ah-key.miss{background:rgba(231,76,60,.12);border-color:var(--danger);color:#eb7070}
+.ah-space{width:100%;height:4px;display:block}
+
+/* ══════ UNE CON FLECHAS ══════ */
+#screen-flechas .game-wrap{max-width:760px}
+.flechas-layout{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:start;margin-top:10px}
+@media(max-width:560px){.flechas-layout{grid-template-columns:1fr 1fr}}
+.flechas-col h4{font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;text-align:center}
+.flecha-item{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:.85rem;font-weight:600;margin-bottom:8px;cursor:pointer;transition:border-color .2s,background .2s;line-height:1.35;text-align:center}
+.flecha-item:hover{border-color:var(--accent)}
+.flecha-item.selected{border-color:var(--accent);background:rgba(47,128,237,.15)}
+.flecha-item.matched-ok{border-color:var(--success);background:rgba(39,174,96,.12);color:#6fcf97;cursor:default}
+.flecha-item.matched-fail{border-color:var(--danger);background:rgba(231,76,60,.12);color:#eb7070}
+.flecha-item.disabled{opacity:.5;cursor:default}
+.flechas-mid{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;padding-top:30px}
+.flechas-mid svg{opacity:.3}
+.flechas-score-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+
+/* SVG canvas for lines */
+#svg-lines{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.flechas-container{position:relative}
+
+/* ══════ ANIMATIONS ══════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes burstFly{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-70px) scale(1.4)}}
+.shake{animation:shake .35s ease}
+.correct-burst{position:fixed;pointer-events:none;font-size:1.8rem;z-index:999;animation:burstFly .65s ease forwards}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ MENU PRINCIPAL ══════════════════════════ -->
+<div id="screen-menu" class="screen active">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><div style="color:var(--text3);font-size:.8rem">Nivel básico · Español</div></div>
+  <div class="menu-wrap">
+    <div class="menu-hero">
+      <h1>Aprende Instrumentación<br>Industrial</h1>
+      <p>Juegos didácticos para operadores que inician. ¡Sin conocimientos previos!</p>
+    </div>
+    <div class="stage-cards">
+      <div class="stage-card s1" onclick="goSubmenu(1)">
+        <div class="stage-num">1</div>
+        <h3>Tags y Señales</h3>
+        <p>Aprende a leer códigos como FCV-101, tipos de señales y cómo nombrar instrumentos.</p>
+        <span class="stage-badge">🏷️ 3 juegos disponibles</span>
+      </div>
+      <div class="stage-card s2" onclick="goSubmenu(2)">
+        <div class="stage-num">2</div>
+        <h3>Válvulas y Actuadores</h3>
+        <p>Conoce los tipos de válvulas, para qué sirven y cómo se mueven con actuadores.</p>
+        <span class="stage-badge">🔧 3 juegos disponibles</span>
+      </div>
+      <div class="stage-card s3" onclick="startGame(3,'quiz')">
+        <div class="stage-num">3</div>
+        <h3>Quiz Final</h3>
+        <p>Pon a prueba todo lo aprendido con preguntas mezcladas de todos los temas.</p>
+        <span class="stage-badge">🏆 Quiz evaluación</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ SUBMENÚ ══════════════════════════ -->
+<div id="screen-submenu" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" onclick="goMenu()">← Menú</button></div>
+  <div class="submenu-wrap">
+    <div class="submenu-title">
+      <h2 id="submenu-title">Etapa 1 – Tags y Señales</h2>
+      <p id="submenu-sub">Elige una actividad para practicar</p>
+    </div>
+    <div class="game-cards" id="game-cards"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ TEACH ══════════════════════════ -->
+<div id="screen-teach" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" id="teach-back-btn">← Volver</button></div>
+  <div class="teach-wrap" id="teach-content"></div>
+</div>
+
+<!-- ══════════════════════════ QUIZ ══════════════════════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" onclick="goBack()">← Volver</button></div>
+  <div class="game-wrap">
+    <div class="game-header">
+      <div class="game-title-text" id="game-title-text">Quiz</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="score-display">⭐ <span id="score-display">0</span></div>
+        <button class="hint-btn" id="hint-btn" onclick="useHint()">💡 Pista (<span id="hints-left">2</span>)</button>
+      </div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-label"><span id="prog-label">Pregunta 1 de 5</span><span id="prog-pct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="question-card" id="question-card">
+      <div class="question-tag" id="question-tag">QUIZ</div>
+      <div class="question-text" id="question-text"></div>
+      <div class="hint-box" id="hint-box"></div>
+    </div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="feedback-box" id="feedback-box"><span class="feedback-icon" id="feedback-icon"></span><span id="feedback-text"></span></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════ MEMORAMA ══════════════════════════ -->
+<div id="screen-memorama" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" onclick="goBack()">← Volver</button></div>
+  <div class="game-wrap">
+    <div class="memo-header">
+      <div style="font-family:'Syne',sans-serif;font-size:1.2rem">🃏 Memorama</div>
+      <div class="memo-stats">
+        <div class="memo-stat">Intentos: <span id="memo-intentos">0</span></div>
+        <div class="memo-stat">Pares: <span id="memo-pares">0</span>/<span id="memo-total">8</span></div>
+      </div>
+    </div>
+    <div id="memo-grid" class="memo-grid"></div>
+    <div class="memo-msg" id="memo-msg">🎉 ¡Completaste el memorama!</div>
+    <div style="text-align:center;margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap" id="memo-actions">
+      <button class="btn btn-primary" onclick="initMemorама()">🔁 Nuevo juego</button>
+      <button class="btn btn-ghost" onclick="goBack()">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ SOPA DE LETRAS ══════════════════════════ -->
+<div id="screen-sopa" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" onclick="goBack()">← Volver</button></div>
+  <div class="game-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="font-family:'Syne',sans-serif;font-size:1.2rem">🔤 Sopa de Letras</div>
+      <div class="sopa-timer" id="sopa-timer" style="font-size:1.2rem;margin:0">⏱ <span id="sopa-time">0</span>s</div>
+    </div>
+    <div class="sopa-info" id="sopa-info" style="text-align:left;margin-bottom:10px;color:var(--text2);font-size:.82rem">Haz clic en la primera letra y luego en la última para marcar una palabra</div>
+    <div class="sopa-layout">
+      <div class="sopa-grid-wrap"><div id="sopa-grid" class="sopa-grid"></div></div>
+      <div class="word-list"><h4>Palabras a encontrar</h4><div id="word-list-items"></div></div>
+    </div>
+    <div style="text-align:center;margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="initSopa()">🔁 Nueva sopa</button>
+      <button class="btn btn-ghost" onclick="goBack()">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ ADIVINA LA PALABRA (AHORCADO) ══════════════════════════ -->
+<div id="screen-ahorcado" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" onclick="goBack()">← Volver</button></div>
+  <div class="game-wrap" style="max-width:680px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="font-family:'Syne',sans-serif;font-size:1.2rem">🔤 Adivina la Palabra</div>
+      <div style="display:flex;gap:8px">
+        <div class="memo-stat">Racha: <span id="ah-racha">0</span> 🔥</div>
+        <div class="memo-stat">Ronda <span id="ah-ronda">1</span>/8</div>
+      </div>
+    </div>
+    <!-- dibujo ahorcado SVG -->
+    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+      <div style="flex-shrink:0">
+        <svg id="ah-svg" width="140" height="160" viewBox="0 0 140 160">
+          <!-- Gallows -->
+          <line x1="10" y1="155" x2="130" y2="155" stroke="#2a3441" stroke-width="4" stroke-linecap="round"/>
+          <line x1="35" y1="155" x2="35" y2="10" stroke="#2a3441" stroke-width="4" stroke-linecap="round"/>
+          <line x1="35" y1="10" x2="90" y2="10" stroke="#2a3441" stroke-width="4" stroke-linecap="round"/>
+          <line x1="90" y1="10" x2="90" y2="30" stroke="#2a3441" stroke-width="4" stroke-linecap="round"/>
+          <!-- Body parts (hidden by default) -->
+          <circle id="ah-head" cx="90" cy="45" r="15" stroke="#e74c3c" stroke-width="3" fill="none" style="display:none"/>
+          <line  id="ah-body" x1="90" y1="60" x2="90" y2="105" stroke="#e74c3c" stroke-width="3" stroke-linecap="round" style="display:none"/>
+          <line  id="ah-larm" x1="90" y1="75" x2="65" y2="95" stroke="#e74c3c" stroke-width="3" stroke-linecap="round" style="display:none"/>
+          <line  id="ah-rarm" x1="90" y1="75" x2="115" y2="95" stroke="#e74c3c" stroke-width="3" stroke-linecap="round" style="display:none"/>
+          <line  id="ah-lleg" x1="90" y1="105" x2="65" y2="130" stroke="#e74c3c" stroke-width="3" stroke-linecap="round" style="display:none"/>
+          <line  id="ah-rleg" x1="90" y1="105" x2="115" y2="130" stroke="#e74c3c" stroke-width="3" stroke-linecap="round" style="display:none"/>
+        </svg>
+        <div style="text-align:center;font-size:.8rem;color:var(--text3);margin-top:2px">Intentos: <span id="ah-intentos-left" style="color:var(--warning);font-weight:700">6</span> restantes</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
+          <div style="font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Pista</div>
+          <div id="ah-pista" style="font-size:.9rem;color:var(--accent2);line-height:1.5"></div>
+        </div>
+        <div id="ah-word-display" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;min-height:44px;align-items:center"></div>
+        <div id="ah-feedback" style="font-size:.88rem;min-height:22px;margin-bottom:10px"></div>
+      </div>
+    </div>
+    <!-- Teclado -->
+    <div id="ah-keyboard" style="margin-top:14px"></div>
+    <div style="text-align:center;margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="initAhorcado()">🔁 Nuevo juego</button>
+      <button class="btn btn-ghost" onclick="goBack()">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ UNE CON FLECHAS ══════════════════════════ -->
+<div id="screen-flechas" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" onclick="goBack()">← Volver</button></div>
+  <div class="game-wrap">
+    <div class="flechas-score-row">
+      <div style="font-family:'Syne',sans-serif;font-size:1.2rem">🔗 Une con Flechas</div>
+      <div style="display:flex;gap:8px">
+        <div class="memo-stat">✅ <span id="f-correct">0</span></div>
+        <div class="memo-stat">❌ <span id="f-wrong">0</span></div>
+      </div>
+    </div>
+    <div style="color:var(--text2);font-size:.82rem;margin-bottom:14px">Selecciona un elemento de la columna izquierda y luego su pareja de la derecha</div>
+    <div class="flechas-container">
+      <div class="flechas-layout">
+        <div><h4 style="font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;text-align:center">Elemento</h4><div id="f-left"></div></div>
+        <div class="flechas-mid"></div>
+        <div><h4 style="font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;text-align:center">Descripción</h4><div id="f-right"></div></div>
+      </div>
+    </div>
+    <div id="f-feedback" style="text-align:center;margin-top:14px;font-size:.9rem;min-height:24px"></div>
+    <div style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="initFlechas()">🔁 Nuevo juego</button>
+      <button class="btn btn-ghost" onclick="goBack()">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ RESULT ══════════════════════════ -->
+<div id="screen-result" class="screen">
+  <div class="top-bar"><div class="logo">PID<span>Academy</span></div><button class="btn-back" onclick="goMenu()">← Menú</button></div>
+  <div class="result-wrap">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title" id="result-title">¡Bien hecho!</div>
+    <div class="result-score" id="result-score">4/5</div>
+    <div class="result-breakdown">
+      <div class="rb-item"><div class="rb-val" id="rb-correct">0</div><div class="rb-label">Correctas</div></div>
+      <div class="rb-item"><div class="rb-val" id="rb-wrong">0</div><div class="rb-label">Incorrectas</div></div>
+      <div class="rb-item"><div class="rb-val" id="rb-pct">0%</div><div class="rb-label">Acierto</div></div>
+    </div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="retryGame()">🔁 Jugar de nuevo</button>
+      <button class="btn btn-ghost" onclick="goMenu()">🏠 Menú principal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   NAVIGATION STATE
+═══════════════════════════════════════════════════ */
+let currentStage=0, currentGame='', backTarget='menu';
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goMenu(){showScreen('menu')}
+function goBack(){
+  if(backTarget==='submenu') goSubmenu(currentStage);
+  else goMenu();
+}
+
+/* ═══════════════════════════════════════════════════
+   SUBMENÚ
+═══════════════════════════════════════════════════ */
+const SUBMENUS = {
+  1:{
+    title:'Etapa 1 – Tags y Señales',
+    sub:'Primero aprende, luego juega',
+    teach:{icon:'📖', name:'Lección del Tema', desc:'Aprende qué significan las letras de los TAGs y los tipos de señales. ¡Empieza aquí!', badge:'gc-badge-blue', label:'Aprender'},
+    games:[
+      {id:'memorama', icon:'🃏', name:'Memorama', desc:'Empareja cada letra de TAG con su significado. ¡Prueba tu memoria!', badge:'gc-badge-purple', label:'Memoria'},
+      {id:'sopa',     icon:'🔤', name:'Sopa de Letras', desc:'Encuentra las palabras clave de instrumentación escondidas en la sopa.', badge:'gc-badge-green', label:'Búsqueda'},
+      {id:'quiz',     icon:'🎯', name:'Quiz Situacional', desc:'Preguntas de la vida real en planta. ¿Sabrías qué hacer?', badge:'gc-badge-yellow', label:'Situacional'},
+    ]
+  },
+  2:{
+    title:'Etapa 2 – Válvulas y Actuadores',
+    sub:'Primero aprende, luego juega',
+    teach:{icon:'📖', name:'Lección del Tema', desc:'Conoce los tipos de válvulas, para qué sirven y cómo funcionan los actuadores.', badge:'gc-badge-blue', label:'Aprender'},
+    games:[
+      {id:'ahorcado',  icon:'🔤', name:'Adivina la Palabra', desc:'Descubre palabras de válvulas y actuadores letra por letra antes de quedarte sin intentos.', badge:'gc-badge-purple', label:'Palabras'},
+      {id:'flechas',   icon:'🔗', name:'Une con Flechas', desc:'Conecta cada válvula o actuador con su descripción correcta.', badge:'gc-badge-green', label:'Relación'},
+      {id:'quiz',      icon:'🎯', name:'Quiz Situacional', desc:'Escenarios reales de planta. ¿Qué válvula o actuador usarías?', badge:'gc-badge-yellow', label:'Situacional'},
+    ]
+  }
+};
+
+function goSubmenu(stage){
+  currentStage=stage;
+  backTarget='menu';
+  const s=SUBMENUS[stage];
+  document.getElementById('submenu-title').textContent=s.title;
+  document.getElementById('submenu-sub').textContent=s.sub;
+  const gc=document.getElementById('game-cards');
+  // Lesson card (full width / accent style)
+  const t=s.teach;
+  let html=`<div class="game-card teach-card" onclick="goTeachScreen(${stage})" style="grid-column:1/-1;display:flex;align-items:center;gap:18px;text-align:left;background:linear-gradient(135deg,rgba(47,128,237,.12),rgba(86,204,242,.08));border-color:rgba(47,128,237,.4)">
+    <div style="font-size:2.6rem;flex-shrink:0">${t.icon}</div>
+    <div>
+      <h3 style="font-size:1rem;color:var(--accent2)">${t.name}</h3>
+      <p style="margin-top:4px">${t.desc}</p>
+      <span class="gc-badge ${t.badge}" style="margin-top:8px">${t.label}</span>
+    </div>
+    <div style="margin-left:auto;font-size:1.4rem;flex-shrink:0;opacity:.6">→</div>
+  </div>`;
+  s.games.forEach(g=>{
+    html+=`<div class="game-card" onclick="startGame(${stage},'${g.id}')">
+      <div class="gc-icon">${g.icon}</div>
+      <h3>${g.name}</h3>
+      <p>${g.desc}</p>
+      <span class="gc-badge ${g.badge}">${g.label}</span>
+    </div>`;
+  });
+  gc.innerHTML=html;
+  showScreen('submenu');
+}
+
+function goTeachScreen(stage){
+  currentStage=stage;
+  backTarget='submenu';
+  document.getElementById('teach-back-btn').onclick=()=>goSubmenu(stage);
+  document.getElementById('teach-content').innerHTML=TEACH[stage];
+  showScreen('teach');
+}
+
+function startGame(stage,game){
+  currentStage=stage; currentGame=game;
+  backTarget=(stage===3)?'menu':'submenu';
+  if(game==='quiz') initQuiz(stage);
+  else if(game==='memorama') initMemorама();
+  else if(game==='sopa') initSopa();
+  else if(game==='ahorcado') initAhorcado();
+  else if(game==='flechas') initFlechas();
+}
+function retryGame(){ startGame(currentStage,currentGame); }
+
+/* ═══════════════════════════════════════════════════
+   TEACH CONTENT (lección previa)
+═══════════════════════════════════════════════════ */
+const TEACH = {
+  1:`
+<h2>🏷️ Etapa 1: Tags y Señales</h2>
+<p class="sub">Tómate unos minutos para leer esto. Después los juegos serán muy fáciles.</p>
+
+<div class="info-block">
+  <h3><span>🔍</span> ¿Qué es un TAG y para qué sirve?</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:12px">
+    En una planta industrial puede haber cientos o hasta miles de instrumentos: sensores, válvulas, controladores, alarmas… 
+    Para no confundirlos, <strong style="color:var(--text)">cada instrumento tiene un nombre único llamado TAG</strong>. 
+    Es como la placa de un carro: no hay dos iguales en la misma planta.
+  </p>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:14px">
+    Cuando el supervisor te dice por radio "revisa el FCV-101", tú sabes exactamente a qué instrumento se refiere, 
+    dónde está en el diagrama y qué hace. Sin los TAGs, habría confusión y riesgo de accidentes.
+  </p>
+  <p style="color:var(--text2);font-size:.88rem;margin-bottom:10px">Mira este ejemplo de un TAG típico:</p>
+  <div class="tag-example"><span class="tag-l1">F</span><span class="tag-l2">C</span><span class="tag-l3">V</span><span class="tag-num">-101</span></div>
+  <div class="tag-legend" style="margin-top:12px">
+    <div class="tag-leg-item"><span class="tag-l1 letter">F</span><span class="meaning">= <strong>Flujo</strong> (qué se mide)</span></div>
+    <div class="tag-leg-item"><span class="tag-l2 letter">C</span><span class="meaning">= <strong>Controlador</strong> (qué hace)</span></div>
+    <div class="tag-leg-item"><span class="tag-l3 letter">V</span><span class="meaning">= <strong>Válvula</strong> (tipo de elemento)</span></div>
+    <div class="tag-leg-item"><span class="tag-num letter" style="font-size:.85rem">101</span><span class="meaning">= <strong>Identificador</strong> único</span></div>
+  </div>
+  <p style="color:var(--text2);font-size:.85rem;margin-top:12px">
+    Entonces <strong style="color:var(--text)">FCV-101</strong> se lee: <em>"Válvula Controladora de Flujo número 101"</em>.
+  </p>
+</div>
+
+<div class="info-block">
+  <h3><span>📋</span> Primera letra – ¿Qué variable se mide?</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:12px">
+    La <strong style="color:var(--text)">primera letra siempre indica la variable del proceso</strong>: aquello que el instrumento mide, controla o monitorea. 
+    Estas son las más comunes que encontrarás en planta:
+  </p>
+  <div class="tag-legend">
+    <div class="tag-leg-item"><span class="tag-l1 letter">F</span><span class="meaning"><strong>Flujo</strong> – cuánto líquido o gas está pasando por la tubería</span></div>
+    <div class="tag-leg-item"><span class="tag-l1 letter">P</span><span class="meaning"><strong>Presión</strong> – la fuerza con que el fluido empuja las paredes</span></div>
+    <div class="tag-leg-item"><span class="tag-l1 letter">L</span><span class="meaning"><strong>Nivel</strong> – qué tan lleno está un tanque o recipiente</span></div>
+    <div class="tag-leg-item"><span class="tag-l1 letter">T</span><span class="meaning"><strong>Temperatura</strong> – qué tan caliente o frío está algo</span></div>
+    <div class="tag-leg-item"><span class="tag-l1 letter">A</span><span class="meaning"><strong>Análisis</strong> – composición química (pH, concentración…)</span></div>
+    <div class="tag-leg-item"><span class="tag-l1 letter">S</span><span class="meaning"><strong>Velocidad</strong> – rapidez de rotación (Speed)</span></div>
+  </div>
+  <p style="color:var(--text2);font-size:.82rem;margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent)">
+    💡 <strong style="color:var(--text)">Truco:</strong> Cuando veas un TAG, la primera letra te dice de inmediato de qué está hablando el instrumento. 
+    Si empieza con T, habla de temperatura. Si empieza con P, habla de presión. ¡Así de sencillo!
+  </p>
+</div>
+
+<div class="info-block">
+  <h3><span>⚙️</span> Las letras siguientes – ¿Qué hace el instrumento?</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:8px">
+    Después de la primera letra vienen una o más letras que describen <strong style="color:var(--text)">la función del instrumento</strong>: qué hace con esa variable.
+  </p>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:12px">
+    Un TAG puede tener <strong style="color:var(--text)">2, 3 o incluso 4 letras</strong> antes del número. Esto pasa porque a veces 
+    un instrumento tiene varias funciones combinadas. Por ejemplo: <span style="color:var(--accent2);font-family:'Syne',sans-serif;font-weight:700">FICA-201</span> 
+    significa Flujo + Indicador + Controlador + Alarma (todo en uno). No te asustes, 
+    siempre se lee de izquierda a derecha y cada letra agrega información.
+  </p>
+  <div class="tag-legend">
+    <div class="tag-leg-item"><span class="tag-l2 letter">I</span><span class="meaning"><strong>Indicador</strong> – solo muestra el valor, no actúa</span></div>
+    <div class="tag-leg-item"><span class="tag-l2 letter">T</span><span class="meaning"><strong>Transmisor</strong> – mide y envía la señal a otro lugar</span></div>
+    <div class="tag-leg-item"><span class="tag-l2 letter">C</span><span class="meaning"><strong>Controlador</strong> – mide y regula automáticamente</span></div>
+    <div class="tag-leg-item"><span class="tag-l3 letter">V</span><span class="meaning"><strong>Válvula</strong> – elemento que abre o cierra el paso</span></div>
+    <div class="tag-leg-item"><span class="tag-l2 letter">S</span><span class="meaning"><strong>Switch</strong> – detecta si se pasó un límite (sí/no)</span></div>
+    <div class="tag-leg-item"><span class="tag-l2 letter">A</span><span class="meaning"><strong>Alarma</strong> – avisa cuando algo está fuera de rango</span></div>
+    <div class="tag-leg-item"><span class="tag-l2 letter">R</span><span class="meaning"><strong>Registrador</strong> – guarda el historial de valores</span></div>
+    <div class="tag-leg-item"><span class="tag-l2 letter">Y</span><span class="meaning"><strong>Convertidor</strong> – cambia el tipo de señal</span></div>
+  </div>
+  <div style="margin-top:14px;background:var(--surface2);border-radius:10px;padding:14px">
+    <p style="color:var(--text3);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Ejemplos de TAGs con múltiples letras</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent2);min-width:70px">FIC-101</span>
+        <span style="color:var(--text2);font-size:.85rem">F=Flujo · I=Indicador · C=Controlador → Controla el flujo y lo muestra</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent2);min-width:70px">PAH-205</span>
+        <span style="color:var(--text2);font-size:.85rem">P=Presión · A=Alarma · H=High (alta) → Alarma de presión alta</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent2);min-width:70px">LICA-310</span>
+        <span style="color:var(--text2);font-size:.85rem">L=Nivel · I=Indicador · C=Controlador · A=Alarma → Todo en uno</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="info-block">
+  <h3><span>🔢</span> Los números – El identificador</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:10px">
+    El número después del guion (como el <strong style="color:var(--text)">101</strong> en FCV-101) es simplemente el número de identificación único del instrumento.
+    Imagina que en una planta hay 30 válvulas de control de flujo: todas serían FCV, pero el número las distingue.
+  </p>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6">
+    Muchas plantas usan una convención: el <strong style="color:var(--text)">primer dígito indica el área</strong> (área 1, área 2…) 
+    y los siguientes dígitos el número de loop o instrumento. Así, el FCV-<span style="color:var(--accent2);font-weight:700">1</span>01 está en el área 1 
+    y el FCV-<span style="color:var(--warning);font-weight:700">2</span>01 está en el área 2.
+  </p>
+</div>
+
+<div class="info-block">
+  <h3><span>⚡</span> Tipos de Señales</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:12px">
+    Los instrumentos se comunican entre sí y con la sala de control usando <strong style="color:var(--text)">señales</strong>. 
+    Una señal es simplemente la forma en que se transmite información de un lugar a otro. 
+    Hay tres tipos principales que debes conocer:
+  </p>
+  <div class="signal-grid">
+    <div class="signal-card">
+      <div class="sig-icon">⚡</div>
+      <div class="sig-name">Eléctrica</div>
+      <div class="sig-desc">Usa corriente eléctrica, generalmente entre 4 y 20 miliamperios (4-20 mA). Es la más usada hoy en día. Viaja por cables y es muy precisa y segura.</div>
+    </div>
+    <div class="signal-card">
+      <div class="sig-icon">💨</div>
+      <div class="sig-name">Neumática</div>
+      <div class="sig-desc">Usa aire comprimido a presión (normalmente 3-15 PSI). Muy común para mover válvulas en campo. Necesita un compresor de aire.</div>
+    </div>
+    <div class="signal-card">
+      <div class="sig-icon">💧</div>
+      <div class="sig-name">Hidráulica</div>
+      <div class="sig-desc">Usa aceite o líquido a alta presión. Se usa cuando se necesita mucha fuerza para mover equipos muy grandes o pesados.</div>
+    </div>
+  </div>
+  <p style="color:var(--text2);font-size:.82rem;margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--success)">
+    💡 <strong style="color:var(--text)">Dato importante:</strong> La señal eléctrica 4-20mA es el estándar mundial. 
+    Cuando el instrumento mide el valor mínimo de su rango envía 4mA, y cuando mide el máximo envía 20mA. 
+    Si ves que un instrumento marca exactamente 4mA, puede ser lectura normal o puede ser señal de falla del cable. ¡Siempre verifica!
+  </p>
+</div>
+
+<div class="info-block">
+  <h3><span>📌</span> Resumen rápido para recordar</h3>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">1️⃣</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5">La <strong style="color:var(--text)">primera letra</strong> del TAG siempre dice QUÉ SE MIDE (F=Flujo, P=Presión, T=Temperatura, L=Nivel…)</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">2️⃣</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5">Las <strong style="color:var(--text)">letras siguientes</strong> dicen QUÉ HACE el instrumento. Pueden ser 1, 2 o 3 letras según las funciones que tenga.</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">3️⃣</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5">El <strong style="color:var(--text)">número</strong> es el identificador único. Nunca habrá dos instrumentos con el mismo TAG en la misma planta.</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">4️⃣</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5">Las <strong style="color:var(--text)">señales</strong> pueden ser eléctricas (4-20mA), neumáticas (aire) o hidráulicas (aceite a presión).</span>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:24px;padding-bottom:20px">
+  <button class="btn btn-primary" onclick="goSubmenu(1)" style="font-size:1rem;padding:14px 32px">🎮 ¡Listo! Ir a los juegos →</button>
+</div>`,
+
+  2:`
+<h2>🔧 Etapa 2: Válvulas y Actuadores</h2>
+<p class="sub">Lee con calma. Esta lección te preparará muy bien para los juegos.</p>
+
+<div class="info-block">
+  <h3><span>🚰</span> ¿Qué es una válvula y para qué sirve?</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:10px">
+    Imagina que la tubería de una planta es como el sistema de tuberías de tu casa. 
+    Las <strong style="color:var(--text)">válvulas son como las llaves de agua</strong>: controlan si el fluido pasa, 
+    cuánto pasa y en qué dirección va.
+  </p>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6">
+    En una planta industrial hay válvulas en casi todas las tuberías. Sin ellas, sería imposible 
+    controlar el proceso, hacer mantenimiento de forma segura o responder a una emergencia.
+  </p>
+</div>
+
+<div class="info-block">
+  <h3><span>🛠️</span> Válvulas básicas que debes conocer</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:14px">
+    Existen decenas de tipos de válvulas en la industria (de mariposa, de diafragma, de aguja, de seguridad, reductoras de presión, y muchas más). 
+    Sin embargo, como operador básico, <strong style="color:var(--text)">estas cuatro son las más importantes y las que verás con más frecuencia</strong>:
+  </p>
+  <div class="valve-grid">
+    <div class="valve-card">
+      <div class="v-icon">⚽</div>
+      <div class="v-name">Válvula de Bola</div>
+      <div class="v-desc">Tiene una esfera con un agujero en el centro. Al girar 90° (un cuarto de vuelta), el agujero queda alineado con la tubería y el fluido pasa. Es muy rápida de operar.</div>
+      <div class="v-tip">💡 Ideal para: aislar líneas rápidamente o en emergencias</div>
+    </div>
+    <div class="valve-card">
+      <div class="v-icon">🚪</div>
+      <div class="v-name">Válvula de Compuerta</div>
+      <div class="v-desc">Funciona como una puerta que sube o baja. Cuando está completamente abierta, el fluido pasa sin casi ninguna restricción. Solo debe usarse abierta o cerrada, nunca a la mitad.</div>
+      <div class="v-tip">💡 Ideal para: permitir flujo completo sin pérdida de presión</div>
+    </div>
+    <div class="valve-card">
+      <div class="v-icon">🌍</div>
+      <div class="v-name">Válvula Globo</div>
+      <div class="v-desc">Su nombre viene de su forma redondeada (globo). El fluido debe cambiar de dirección al pasar por ella, lo que permite regular con mucha precisión cuánto fluido pasa.</div>
+      <div class="v-tip">💡 Ideal para: controlar caudal con precisión (por ejemplo, flujo de vapor)</div>
+    </div>
+    <div class="valve-card">
+      <div class="v-icon">🔙</div>
+      <div class="v-name">Válvula Check</div>
+      <div class="v-desc">También llamada "anti-retorno" o "de retención". Se abre sola cuando el fluido va en la dirección correcta y se cierra automáticamente si intenta regresar. No necesita actuador ni operador.</div>
+      <div class="v-tip">💡 Ideal para: proteger bombas y evitar que el fluido regrese</div>
+    </div>
+  </div>
+  <div style="margin-top:14px;padding:12px 16px;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.3);border-radius:10px">
+    <p style="color:#f5c26b;font-size:.85rem;line-height:1.6">
+      ⚠️ <strong>Recuerda:</strong> Estas son solo las válvulas más básicas. En tu planta encontrarás también 
+      válvulas de mariposa, de diafragma, de aguja, de alivio, reductoras de presión y muchas más. 
+      Cada una fue diseñada para una aplicación específica. Con la experiencia irás aprendiéndolas todas poco a poco.
+    </p>
+  </div>
+</div>
+
+<div class="info-block">
+  <h3><span>📊</span> Comparativa rápida de válvulas</h3>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:8px 10px;color:var(--text3);font-weight:600">Válvula</th>
+          <th style="text-align:center;padding:8px 10px;color:var(--text3);font-weight:600">¿Regula flujo?</th>
+          <th style="text-align:center;padding:8px 10px;color:var(--text3);font-weight:600">¿Aísla rápido?</th>
+          <th style="text-align:center;padding:8px 10px;color:var(--text3);font-weight:600">¿Opera sola?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 10px;font-weight:600;color:var(--accent2)">⚽ Bola</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+          <td style="text-align:center;padding:8px 10px;color:#6fcf97">✓ Sí</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 10px;font-weight:600;color:var(--accent2)">🚪 Compuerta</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ Lenta</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 10px;font-weight:600;color:var(--accent2)">🌍 Globo</td>
+          <td style="text-align:center;padding:8px 10px;color:#6fcf97">✓ Sí</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 10px;font-weight:600;color:var(--accent2)">🔙 Check</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+          <td style="text-align:center;padding:8px 10px;color:#eb7070">✗ No</td>
+          <td style="text-align:center;padding:8px 10px;color:#6fcf97">✓ Sí</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="info-block">
+  <h3><span>🤖</span> ¿Qué es un Actuador?</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:10px">
+    Una válvula por sí sola es solo un objeto mecánico. Para que se mueva automáticamente, 
+    siguiendo órdenes de la sala de control, necesita un <strong style="color:var(--text)">actuador</strong>.
+  </p>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:14px">
+    El actuador es el "músculo" de la válvula. Recibe una señal (eléctrica, de aire o de aceite) 
+    y la convierte en movimiento mecánico para abrir o cerrar la válvula. 
+    Sin actuador, alguien tendría que ir físicamente a la válvula y operarla a mano.
+  </p>
+  <div class="act-grid">
+    <div class="act-card">
+      <div class="a-icon">💨</div>
+      <div class="a-name">Actuador Neumático</div>
+      <div class="a-desc">Recibe aire comprimido que empuja un diafragma o pistón para mover la válvula. Es el más común en plantas de proceso porque el aire está disponible en toda la planta y no genera chispas (ideal en zonas explosivas).</div>
+    </div>
+    <div class="act-card">
+      <div class="a-icon">⚡</div>
+      <div class="a-name">Actuador Eléctrico</div>
+      <div class="a-desc">Usa un motor eléctrico para girar o mover la válvula. Es muy preciso y fácil de controlar y monitorear desde la sala de control. Ideal cuando se necesita saber exactamente en qué posición está la válvula.</div>
+    </div>
+    <div class="act-card">
+      <div class="a-icon">💪</div>
+      <div class="a-name">Actuador Hidráulico</div>
+      <div class="a-desc">Usa aceite a muy alta presión (miles de PSI) para generar una fuerza enorme. Se usa en válvulas muy grandes, pesadas o en condiciones extremas donde los otros actuadores no tienen suficiente potencia.</div>
+    </div>
+  </div>
+</div>
+
+<div class="info-block">
+  <h3><span>🔐</span> Posición de falla (Fail-Safe)</h3>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:10px">
+    Una cosa importante que los operadores deben saber: cuando se va el suministro de energía 
+    (se corta el aire, falla la electricidad), ¿qué hace la válvula?
+  </p>
+  <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:10px">
+    Esto se llama <strong style="color:var(--text)">posición de falla o Fail-Safe</strong> y se diseña según el proceso:
+  </p>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);border-radius:8px">
+      <span style="font-size:1.1rem">🟢</span>
+      <div>
+        <span style="font-weight:600;color:#6fcf97;font-size:.88rem">Normalmente Abierta (NA / Fail-Open)</span>
+        <p style="color:var(--text2);font-size:.82rem;margin-top:2px">Si se pierde el suministro, la válvula <strong style="color:var(--text)">queda abierta</strong>. Se usa cuando cerrar sería más peligroso.</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);border-radius:8px">
+      <span style="font-size:1.1rem">🔴</span>
+      <div>
+        <span style="font-weight:600;color:#eb7070;font-size:.88rem">Normalmente Cerrada (NC / Fail-Close)</span>
+        <p style="color:var(--text2);font-size:.82rem;margin-top:2px">Si se pierde el suministro, la válvula <strong style="color:var(--text)">queda cerrada</strong>. Se usa cuando dejar pasar fluido sería peligroso.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="info-block">
+  <h3><span>📌</span> Resumen rápido para recordar</h3>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">⚽</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5"><strong style="color:var(--text)">Bola:</strong> rápida, 90° de giro, solo abre o cierra totalmente. Para aislar.</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">🚪</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5"><strong style="color:var(--text)">Compuerta:</strong> flujo completo, solo abre o cierra. Nunca a la mitad.</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">🌍</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5"><strong style="color:var(--text)">Globo:</strong> la mejor para regular. Puede estar en cualquier posición intermedia.</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">🔙</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5"><strong style="color:var(--text)">Check:</strong> opera sola, solo permite una dirección. Protege las bombas.</span>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface2);border-radius:8px">
+      <span style="font-size:1.2rem">🤖</span>
+      <span style="color:var(--text2);font-size:.88rem;line-height:1.5"><strong style="color:var(--text)">Actuadores:</strong> neumático (aire), eléctrico (motor), hidráulico (aceite). Son los que mueven las válvulas automáticamente.</span>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:24px;padding-bottom:20px">
+  <button class="btn btn-primary" onclick="goSubmenu(2)" style="font-size:1rem;padding:14px 32px">🎮 ¡Listo! Ir a los juegos →</button>
+</div>`
+};
+
+/* ═══════════════════════════════════════════════════
+   QUIZ – BANCOS DE PREGUNTAS
+═══════════════════════════════════════════════════ */
+const Q1 = [
+  {q:"Tu supervisor te dice: 'Revisa el FT-201, está dando valores raros.' ¿De qué instrumento te está hablando?",opts:["Válvula de flujo 201","Transmisor de flujo 201","Indicador de temperatura 201","Controlador de flujo 201"],ans:1,hint:"F=Flujo, T=Transmisor.",exp:"FT-201: F=Flujo + T=Transmisor. Tu supervisor habla de un transmisor que mide el caudal y envía la señal a control. Número 201 es su identificador."},
+  {q:"El operador del turno anterior te deja nota: 'El FS-101 disparó a las 3am.' ¿Qué pasó?",opts:["Una válvula de flujo se abrió sola","Un switch de flujo activó una alarma o acción","Un transmisor de temperatura falló","Un controlador perdió señal"],ans:1,hint:"F=Flujo, S=Switch. Un switch reacciona ante un límite.",exp:"FS-101 es un switch de flujo. Cuando el flujo llega a cierto límite (muy alto o muy bajo), el switch 'dispara' (activa) una alarma o detiene equipos automáticamente."},
+  {q:"Alguien dice 'necesito saber la temperatura del horno en campo, sin mandarla a control'. ¿Qué instrumento pide?",opts:["TT (Transmisor de Temperatura)","TC (Controlador de Temperatura)","TI (Indicador de Temperatura)","TA (Alarma de Temperatura)"],ans:2,hint:"Si solo quiere VER el valor local, necesita un Indicador.",exp:"TI = Indicador de Temperatura. Solo muestra el valor localmente. No envía señal ni controla. Perfecto para ver la temperatura directamente en campo."},
+  {q:"La sala de control perdió la señal de un instrumento. El técnico dice 'es el PT-305, el cable se cortó'. ¿Qué tipo de señal falló?",opts:["Señal neumática","Señal hidráulica","Señal eléctrica","Señal mecánica"],ans:2,hint:"Si hay un cable de por medio, ¿qué tipo de señal viaja por cable?",exp:"La señal eléctrica viaja por cables (generalmente 4-20mA). Si el cable se cortó, la señal eléctrica falló. Los instrumentos tipo TT, PT, FT envían señales eléctricas."},
+  {q:"Ves un instrumento con TAG 'LCV-301' instalado en la tubería de salida de un tanque. ¿Para qué sirve?",opts:["Mide el nivel del tanque","Controla el nivel del tanque abriendo/cerrando el flujo","Es una alarma de nivel","Transmite la señal de nivel a control"],ans:1,hint:"L=Nivel, C=Controlador, V=Válvula. Una válvula controladora de nivel…",exp:"LCV-301: L=Nivel, C=Controlador, V=Válvula. Esta válvula se abre o cierra automáticamente para mantener el nivel del tanque en el punto deseado."},
+  {q:"Un compañero nuevo pregunta: '¿Para qué sirven los números en un TAG como FCV-101?' ¿Qué le respondes?",opts:["Indican la presión máxima del instrumento","Son el número de serie para identificar ese instrumento específico en la planta","Indican el año de instalación","Representan el área de proceso"],ans:1,hint:"Imagina 50 válvulas de flujo. ¿Cómo las distingues sin número?",exp:"Los números son el identificador único. Si hay muchas FCV, el número nos dice exactamente cuál es cuál. El 101 suele indicar área 1, loop 01."},
+  {q:"La alarma LA-202 sonó en sala de control. ¿Qué está pasando?",opts:["Un actuador de nivel falló","Hay un problema con el nivel (muy alto o muy bajo)","Un transmisor de flujo falló","El controlador de presión está en manual"],ans:1,hint:"L=Nivel, A=Alarma. ¿Qué activa una alarma de nivel?",exp:"LA-202: L=Nivel + A=Alarma. Esta alarma se activa cuando el nivel en algún tanque sale de los límites permitidos. Hay que investigar qué tanque y por qué."},
+  {q:"Te dicen que van a reemplazar un instrumento que 'solo mide presión y manda la señal al DCS'. ¿Cuál es el TAG correcto?",opts:["PI","PC","PT","PA"],ans:2,hint:"¿Qué función envía la señal a otro lugar? Trans-misor.",exp:"PT: P=Presión + T=Transmisor. Un transmisor mide y envía la señal al DCS (sistema de control). El PI solo muestra local, y el PC controla. El PT transmite."},
+  {q:"Escuchas en radio: 'Necesitamos cortar el flujo en la línea 3, tenemos fuga.' ¿Qué instrumento activarías primero?",opts:["El TI de la línea","El FCV o válvula de aislamiento de la línea 3","El transmisor de presión","La alarma de flujo"],ans:1,hint:"Para cortar el flujo se necesita una válvula, no un sensor.",exp:"Para cortar el flujo ante una fuga, necesitas operar una válvula de aislamiento (como una FCV o una válvula de bloqueo manual). Los transmisores e indicadores solo miden."},
+  {q:"¿Cuál de estos TAGs corresponde a un instrumento que CONTROLA la temperatura automáticamente?",opts:["TI-101","TT-201","TC-301","TA-401"],ans:2,hint:"La función de Controlador regula automáticamente el proceso.",exp:"TC-301: T=Temperatura + C=Controlador. Este instrumento mide la temperatura Y automáticamente ajusta algo (una válvula, un quemador) para mantenerla en el valor deseado."},
+  {q:"En el arranque de planta, ves un instrumento con señal neumática. ¿Qué necesitas verificar primero?",opts:["Que haya electricidad en el área","Que haya suministro de aire comprimido","Que el cable esté conectado","Que el DCS esté en modo automático"],ans:1,hint:"Sin este suministro, un instrumento neumático no puede funcionar.",exp:"Los instrumentos y actuadores neumáticos necesitan aire comprimido (del sistema de instrumentos, generalmente 60-100 PSI). Si no hay aire, no hay señal ni movimiento."},
+  {q:"Un técnico dice: 'El PC-205 está peleando con la presión, sube y baja mucho.' ¿Qué está haciendo el PC-205?",opts:["Solo mostrando la presión","Enviando señal al DCS","Controlando automáticamente la presión del proceso","Generando una alarma"],ans:2,hint:"P=Presión, C=Controlador.",exp:"PC-205 es un Controlador de Presión. Cuando 'pelea' significa que está intentando mantener la presión en el setpoint pero hay algo que se lo dificulta (variación en el proceso)."},
+  {q:"Te entregan un P&ID y ves el código 'PG-150'. El técnico dice que es un 'gauge de presión'. ¿Qué hace este instrumento?",opts:["Controla la presión","Solo indica (muestra) la presión localmente","Transmite señal de presión","Activa alarma de presión"],ans:1,hint:"Un 'gauge' es un indicador local. G también significa indicador en algunos estándares.",exp:"PG-150 es un Indicador/Gauge de Presión. Solo muestra el valor localmente como un reloj, sin enviar señal ni controlar. Muy comunes en plantas para verificación rápida."},
+  {q:"La documentación indica que la señal entre el FT-100 y el FC-100 es '4-20mA'. ¿De qué tipo de señal se trata?",opts:["Neumática","Hidráulica","Eléctrica","Digital inalámbrica"],ans:2,hint:"4-20 miliamperios (mA) es una unidad de corriente eléctrica.",exp:"4-20mA es el estándar de señal eléctrica analógica más usado en instrumentación. 4mA representa el 0% del rango y 20mA el 100%. Viaja por cables y es muy confiable."},
+  {q:"Tu jefe te pregunta el TAG del instrumento que detecta si hay o no flujo (sin medir la cantidad exacta). ¿Cuál es?",opts:["FT (Transmisor de Flujo)","FI (Indicador de Flujo)","FS (Switch de Flujo)","FC (Controlador de Flujo)"],ans:2,hint:"Un switch detecta si se pasó un límite (hay o no hay), no mide exactamente.",exp:"FS = Switch de Flujo. No mide cuánto flujo hay exactamente. Solo detecta si el flujo superó o bajó de cierto límite, como un interruptor que dice SÍ o NO."},
+  // Más preguntas situacionales etapa 1
+  {q:"Ves escrito en una válvula: 'Normalmente Abierta'. El operador te dice que la actuador es neumático. ¿Qué pasa si se corta el aire?",opts:["La válvula se cierra","La válvula se abre (queda en posición normal: abierta)","La válvula explota","No pasa nada"],ans:1,hint:"'Normalmente Abierta' significa esa es su posición de falla/reposo.",exp:"Una válvula NA (Normalmente Abierta) con actuador neumático: si se pierde el aire, la válvula vuelve a su posición normal = ABIERTA. Esto se diseña así por seguridad."},
+  {q:"El mecánico dice: 'El TT-110 está dando 4mA exacto.' ¿Es eso buena o mala señal?",opts:["Buena señal, significa temperatura al mínimo","Mala señal posiblemente, 4mA puede indicar cable cortado o transmisor muerto","Es señal hidráulica","No tiene relación con la temperatura"],ans:1,hint:"Recuerda: 4mA es el mínimo del rango pero también puede ser señal de falla.",exp:"4mA exacto puede ser una lectura válida (temperatura en el mínimo del rango) PERO también puede indicar falla total del transmisor o cable cortado. Se debe investigar."},
+  {q:"¿Por qué es peligroso confundir el TAG de un instrumento al dar una orden?",opts:["No es peligroso, los TAGs son solo nombres","Podrías operar el instrumento equivocado y causar un accidente","Solo importa si es en área explosiva","Los TAGs son iguales en todas las plantas"],ans:1,hint:"Piensa: ¿qué pasa si cierras la válvula equivocada?",exp:"Confundir TAGs puede ser muy peligroso: abrir/cerrar la válvula equivocada puede causar derrames, sobrepresiones, paros de planta o accidentes graves. Por eso son únicos e importantes."},
+  {q:"Necesitas verificar el nivel de un tanque sin entrar al área. Solo tienes acceso a sala de control. ¿Qué instrumento te ayuda?",opts:["LI (Indicador de Nivel) en campo","LT (Transmisor de Nivel) que envía señal al DCS","La válvula de nivel","El switch de nivel"],ans:1,hint:"Sala de control recibe señales de los transmisores.",exp:"LT = Transmisor de Nivel. Envía la señal al DCS en sala de control, así puedes ver el nivel remotamente sin ir al campo. Los indicadores (LI) solo se leen en campo."},
+  {q:"Escuchas al operador decir 'la PCV-220 está saturada'. Sabes que PCV es una válvula controladora de presión. ¿Qué significa 'saturada'?",opts:["La válvula está completamente cerrada y no puede controlar más","La válvula está fallando hidráulicamente","La señal eléctrica se cortó","El TAG está equivocado"],ans:0,hint:"Una válvula 'saturada' está en su límite de acción.",exp:"Una válvula de control 'saturada' está en un extremo (100% abierta o 0% cerrada) y no puede seguir controlando. La presión salió del rango que puede manejar. Hay que investigar la causa."}
+];
+
+const Q2 = [
+  {q:"Llegas a turno y el operador te dice: 'La bomba de transferencia se paró y el agua está regresando por la línea.' ¿Qué válvula falló?",opts:["La válvula de bola de aislamiento","La válvula check (anti-retorno)","La válvula globo de control","El actuador neumático"],ans:1,hint:"¿Qué válvula evita que el fluido regrese?",exp:"La válvula check (anti-retorno) es la responsable de evitar el retroceso cuando la bomba para. Si regresa el agua, la check está fallando o no fue instalada."},
+  {q:"El supervisor pide 'aislar la línea 5 de inmediato, hay una fuga aguas abajo'. ¿Qué tipo de válvula buscas?",opts:["Válvula globo para controlar el flujo","Válvula de bola o compuerta para aislar rápido","Válvula check para el retorno","Actuador hidráulico"],ans:1,hint:"'Aislar' significa cortar el paso completamente y rápido.",exp:"Para aislar una línea se usan válvulas de bola (rápido, 90°) o compuerta (flujo completo). La válvula globo no es buena para aislar porque daña si se cierra rápido."},
+  {q:"Ves que la válvula de control de flujo FCV-110 no está respondiendo. El técnico dice 'revisa el suministro de aire'. ¿Qué tipo de actuador tiene?",opts:["Eléctrico","Hidráulico","Neumático","Manual"],ans:2,hint:"Si el técnico pide revisar el 'suministro de aire', ¿qué actuador usa aire?",exp:"Si piden revisar suministro de aire, el actuador es neumático. Sin aire comprimido, el actuador neumático no puede mover la válvula. Primero verificar presión de aire de instrumentos."},
+  {q:"Un ingeniero pregunta: '¿Qué válvula necesitamos para regular el caudal de vapor al reactor de forma precisa?' ¿Qué respondes?",opts:["Válvula de bola","Válvula de compuerta","Válvula globo","Válvula check"],ans:2,hint:"'Regular de forma precisa' = control fino de apertura.",exp:"La válvula globo es la ideal para regular flujo con precisión. Puede estar parcialmente abierta en cualquier posición. La bola y compuerta son solo para abrir/cerrar totalmente."},
+  {q:"Hay un actuador eléctrico en la válvula de entrada de un tanque. Se fue la luz. ¿Qué pasa con la válvula?",opts:["Se abre completamente sola","Depende de su posición de falla (fail-safe) programada","El actuador neumático entra en respaldo","Nada, el actuador manual toma control"],ans:1,hint:"Todo actuador tiene una posición de 'falla segura' diseñada.",exp:"Los actuadores eléctricos tienen una posición fail-safe (segura) configurada: pueden quedar donde estaban (fail-in-place), abrir o cerrar. Depende del diseño de seguridad del proceso."},
+  {q:"Te piden instalar una válvula en la descarga de una bomba centrífuga para evitar daños si la bomba para súbitamente. ¿Cuál instalas?",opts:["Válvula globo","Válvula de bola motorizada","Válvula check (pie de bomba)","Válvula de compuerta"],ans:2,hint:"'Evitar daños si la bomba para' = evitar que el fluido regrese.",exp:"La válvula check en descarga de bomba la protege: cuando la bomba para, el fluido no regresa (golpe de ariete). Sin ella, el fluido regresaría y dañaría los impulsores de la bomba."},
+  {q:"El manual del equipo dice: 'Actuador hidráulico, presión de operación 3000 PSI'. ¿Para qué se usa este tipo de actuador?",opts:["Para válvulas pequeñas de instrumentación","Para válvulas muy grandes que necesitan mucha fuerza","Para señales eléctricas de control","Para sistemas de alarma"],ans:1,hint:"3000 PSI de aceite genera enormes fuerzas. ¿Para qué se necesita tanta fuerza?",exp:"El actuador hidráulico a 3000 PSI se usa en válvulas muy grandes, pesadas o en condiciones extremas. La fuerza que genera es mucho mayor que neumático o eléctrico."},
+  {q:"Un operador nuevo pregunta: '¿Por qué la válvula de compuerta vibra cuando la dejo a la mitad?' ¿Qué le explicas?",opts:["Porque necesita mantenimiento","Porque la válvula de compuerta no está diseñada para posiciones intermedias","Porque el actuador es hidráulico","Porque la señal eléctrica está fallando"],ans:1,hint:"¿Para qué está diseñada la válvula de compuerta?",exp:"La válvula de compuerta está diseñada para estar 100% abierta o 100% cerrada. En posición intermedia, el flujo crea turbulencia que vibra y erosiona la compuerta. Se daña rápidamente."},
+  {q:"Inspeccionas una válvula y ves que gira solo un cuarto de vuelta para abrir completamente. ¿Qué tipo de válvula es?",opts:["Válvula globo","Válvula de compuerta","Válvula check","Válvula de bola"],ans:3,hint:"¿Cuál funciona con solo 90° de giro?",exp:"La válvula de bola opera con exactamente 90° (un cuarto de vuelta). La palanca o manómetro paralelo a la tubería = abierta; perpendicular = cerrada. Rápido e intuitivo."},
+  {q:"El técnico de mantenimiento abre una válvula y dice 'esta no necesita actuador, se abre sola'. ¿De qué válvula habla?",opts:["Válvula de bola motorizada","Válvula globo automática","Válvula check","Válvula de compuerta manual"],ans:2,hint:"¿Cuál válvula opera por sí sola sin necesitar energía externa?",exp:"La válvula check se opera sola por la presión del fluido. Cuando el fluido fluye en dirección correcta, la abre. Cuando intenta regresar, la presión la cierra. No necesita actuador."},
+  {q:"Control envía señal para abrir al 75% la FCV-100. El actuador es eléctrico. ¿Qué recibe el actuador para moverse?",opts:["Aire comprimido a 75 PSI","Una señal eléctrica (4-20mA o digital)","Aceite hidráulico a presión","Una orden manual del operador"],ans:1,hint:"Actuador eléctrico = usa electricidad para funcionar.",exp:"El actuador eléctrico recibe una señal eléctrica (como 4-20mA o señal digital) del sistema de control. El motor eléctrico interno mueve la válvula a la posición indicada."},
+  {q:"Una válvula de control lleva 10 años funcionando. El técnico dice que 'el actuador neumático tiene baja relación señal-movimiento'. ¿Qué parte revisar primero?",opts:["Los cables eléctricos","El diafragma o sellos del actuador neumático","La válvula check aguas abajo","El transmisor de flujo"],ans:1,hint:"En un actuador neumático, ¿qué parte convierte el aire en movimiento?",exp:"El actuador neumático tiene un diafragma (membrana) que convierte la presión de aire en movimiento. Con años de uso, el diafragma se endurece o se rompe, reduciendo la respuesta."},
+  {q:"¿Cuál es la ventaja principal de usar actuador neumático en una zona clasificada como explosiva?",opts:["Es más barato que el eléctrico","No genera chispas eléctricas, reduciendo riesgo de explosión","Genera más fuerza","Es más preciso que el eléctrico"],ans:1,hint:"En zonas explosivas, ¿qué es lo más peligroso de un motor eléctrico?",exp:"En zonas explosivas (presencia de gas, vapores inflamables), el actuador neumático es preferido porque no usa electricidad y no genera chispas. El actuador eléctrico puede provocar ignición."},
+  {q:"El P&ID muestra una válvula con símbolo de 'NC' (Normally Closed). Si el actuador neumático pierde presión de aire, ¿qué hace la válvula?",opts:["Se abre","Se queda donde estaba","Se cierra (posición normal)","Envía alarma a DCS"],ans:2,hint:"NC = Normalmente Cerrada. Su posición 'normal' es cerrada.",exp:"NC = Normalmente Cerrada. Si se pierde el aire (falla), la válvula va a su posición normal = CERRADA. Esto se diseña así cuando por seguridad es mejor que la válvula cierre en caso de falla."},
+  {q:"Tienes que mantener el nivel de un tanque constante sin intervención manual. El nivel actual es 60% y el setpoint es 50%. ¿Qué hace el sistema?",opts:["El LT transmite la señal, el LC la procesa y la LCV se abre más para bajar el nivel","El operador baja manualmente el nivel","La válvula check se cierra","El FS activa la alarma"],ans:0,hint:"LT mide, LC controla, LCV actúa. El nivel está MUY ALTO del setpoint.",exp:"Sistema automático: LT (transmisor) mide 60%, LC (controlador) compara con setpoint 50%, ordena a LCV (válvula) abrirse más para sacar fluido y bajar el nivel. Todo automático."},
+  {q:"Un compañero dice 'el tallo de la válvula globo está doblado'. ¿Qué consecuencia tiene esto?",opts:["Solo cambia la señal eléctrica","La válvula no puede regular el flujo correctamente y puede atascarse","El actuador neumático pierde presión","El TAG del instrumento cambia"],ans:1,hint:"El tallo es la parte que sube y baja para regular la apertura del globo.",exp:"El tallo (vástago) de la válvula globo es el que transmite el movimiento del actuador al obturador. Si está doblado, la válvula no cierra bien, no regula correctamente y puede trabarse."}
+];
+
+const Q3 = [...Q1, ...Q2,
+  {q:"Ves en el tablero de control: FT-101 = 245 m³/h, setpoint FC-101 = 200 m³/h. ¿Qué hará el sistema automáticamente?",opts:["Abrir más la FCV-101","Cerrar parcialmente la FCV-101 para reducir el flujo","No hace nada","Activar la alarma LA-201"],ans:1,hint:"El flujo está POR ENCIMA del setpoint. El controlador debe reducirlo.",exp:"FC-101 detecta que el flujo real (245) es mayor al deseado (200). Ordena a FCV-101 que cierre parcialmente para reducir el flujo hasta alcanzar los 200 m³/h deseados."},
+  {q:"¿Cuál sería el TAG correcto para el instrumento que mide presión, envía señal al DCS Y activa una alarma si es muy alta?",opts:["PIA","PT y PA son instrumentos separados","PI-H","PC con alarma integrada"],ans:1,hint:"En instrumentación, funciones múltiples se representan con múltiples instrumentos.",exp:"En P&ID generalmente se representan como instrumentos separados: PT (transmisor de presión) envía señal al DCS, y PAH (alarma alta de presión) se activa cuando el valor supera el límite."},
+  {q:"Un operador reporta: 'El actuador de la válvula FCV-300 no responde pero hay 4-20mA llegando al posicionador.' ¿Dónde está la falla?",opts:["En el transmisor de flujo","En el cable de señal","En el actuador o posicionador neumático/eléctrico","En el DCS"],ans:2,hint:"La señal llega bien, pero el actuador no se mueve. ¿Qué convierte la señal en movimiento?",exp:"Si la señal 4-20mA llega correctamente al posicionador pero la válvula no se mueve, la falla está en el actuador o en el posicionador (que convierte la señal en presión de aire o movimiento mecánico)."}
+];
+
+/* ═══════════════════════════════════════════════════
+   QUIZ LOGIC
+═══════════════════════════════════════════════════ */
+let qBank=[],qList=[],qIdx=0,qScore=0,qHints=2,qAnswered=false;
+const QPER=5;
+
+function initQuiz(stage){
+  qBank = stage===1?Q1 : stage===2?Q2 : Q3;
+  qList=shuffle([...qBank]).slice(0,QPER);
+  qIdx=0; qScore=0; qHints=2; qAnswered=false;
+  const titles={1:'Quiz – Tags y Señales',2:'Quiz – Válvulas y Actuadores',3:'Quiz Final'};
+  document.getElementById('game-title-text').textContent=titles[stage];
+  showScreen('quiz');
+  renderQ();
+}
+
+function renderQ(){
+  qAnswered=false;
+  const q=qList[qIdx];
+  const pct=Math.round(qIdx/QPER*100);
+  document.getElementById('prog-label').textContent=`Pregunta ${qIdx+1} de ${QPER}`;
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('score-display').textContent=qScore;
+  document.getElementById('hints-left').textContent=qHints;
+  document.getElementById('hint-btn').disabled=qHints<=0;
+  document.getElementById('hint-box').textContent='';
+  document.getElementById('hint-box').classList.remove('visible');
+  const tags={1:'TAGS & SEÑALES',2:'VÁLVULAS & ACTUADORES',3:'QUIZ FINAL'};
+  document.getElementById('question-tag').textContent=tags[currentStage]||'QUIZ';
+  document.getElementById('question-text').textContent=q.q;
+  const L=['A','B','C','D'],og=document.getElementById('options-grid');
+  og.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='option-btn';
+    b.innerHTML=`<span class="opt-letter">${L[i]}</span><span>${o}</span>`;
+    b.onclick=()=>selectQ(i);
+    og.appendChild(b);
+  });
+  const fb=document.getElementById('feedback-box');
+  fb.className='feedback-box'; fb.style.display='';
+  document.getElementById('next-btn').classList.remove('visible');
+  const qc=document.getElementById('question-card');
+  qc.style.animation='none'; requestAnimationFrame(()=>{qc.style.animation='fadeUp .3s ease'});
+}
+
+function selectQ(idx){
+  if(qAnswered)return; qAnswered=true;
+  const q=qList[qIdx],ok=idx===q.ans;
+  const opts=document.querySelectorAll('.option-btn');
+  opts.forEach(b=>b.disabled=true);
+  opts[q.ans].classList.add('correct');
+  if(!ok){opts[idx].classList.add('wrong');opts[idx].classList.add('shake');setTimeout(()=>opts[idx].classList.remove('shake'),400);}
+  else{qScore++;spawnBurst(opts[idx]);}
+  document.getElementById('score-display').textContent=qScore;
+  const fb=document.getElementById('feedback-box');
+  if(ok){fb.className='feedback-box fb-ok visible';fb.innerHTML=`<span class="feedback-icon">✅</span><span><strong>¡Correcto!</strong> ${q.exp}</span>`;}
+  else{fb.className='feedback-box fb-fail visible';fb.innerHTML=`<span class="feedback-icon">❌</span><span><strong>Incorrecto.</strong> ${q.exp}</span>`;}
+  const nb=document.getElementById('next-btn');
+  nb.classList.add('visible');
+  nb.textContent=qIdx>=QPER-1?'🏁 Ver resultados':'Siguiente →';
+}
+function nextQuestion(){qIdx++;if(qIdx>=QPER)showQuizResult();else renderQ();}
+function useHint(){if(qHints<=0||qAnswered)return;qHints--;document.getElementById('hints-left').textContent=qHints;document.getElementById('hint-btn').disabled=qHints<=0;const hb=document.getElementById('hint-box');hb.textContent='💡 Pista: '+qList[qIdx].hint;hb.classList.add('visible');}
+
+function showQuizResult(){
+  const pct=Math.round(qScore/QPER*100);
+  document.getElementById('result-score').textContent=`${qScore}/${QPER}`;
+  document.getElementById('rb-correct').textContent=qScore;
+  document.getElementById('rb-wrong').textContent=QPER-qScore;
+  document.getElementById('rb-pct').textContent=pct+'%';
+  let emoji,title,msg;
+  if(pct>=80){emoji='🏆';title='¡Excelente trabajo!';msg='Dominaste el tema. Tu comprensión de la vida real en planta es muy buena.';}
+  else if(pct>=50){emoji='👍';title='¡Vas muy bien!';msg='Buenas bases. Repasa los temas donde fallaste y vuelve a intentarlo.';}
+  else{emoji='📖';title='Sigue practicando';msg='Lee la lección de nuevo y vuelve a jugar. Con práctica lo logras.';}
+  document.getElementById('result-emoji').textContent=emoji;
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-msg').textContent=msg;
+  showScreen('result');
+}
+
+/* ═══════════════════════════════════════════════════
+   MEMORAMA
+═══════════════════════════════════════════════════ */
+const MEMO_PAIRS = [
+  {a:'F',ai:'🌊',b:'Flujo',bi:''},
+  {a:'P',ai:'💨',b:'Presión',bi:''},
+  {a:'L',ai:'📦',b:'Nivel',bi:''},
+  {a:'T',ai:'🌡️',b:'Temperatura',bi:''},
+  {a:'I',ai:'👁️',b:'Indicador',bi:''},
+  {a:'C',ai:'🎛️',b:'Controlador',bi:''},
+  {a:'T*',ai:'📡',b:'Transmisor',bi:''},
+  {a:'S',ai:'🔌',b:'Switch',bi:''},
+  {a:'A',ai:'🔔',b:'Alarma',bi:''},
+  {a:'V',ai:'🔧',b:'Válvula',bi:''},
+];
+
+let memoCards=[],memoFlipped=[],memoMatched=0,memoIntentos=0,memoBusy=false;
+
+function initMemorама(){
+  const pairs=shuffle([...MEMO_PAIRS]).slice(0,8);
+  const cards=[];
+  pairs.forEach((p,i)=>{
+    cards.push({id:i*2,pairId:i,face:p.a,icon:p.ai,isLetter:true,flipped:false,matched:false});
+    cards.push({id:i*2+1,pairId:i,face:p.b,icon:p.bi,isLetter:false,flipped:false,matched:false});
+  });
+  memoCards=shuffle(cards);
+  memoFlipped=[]; memoMatched=0; memoIntentos=0; memoBusy=false;
+  document.getElementById('memo-total').textContent=8;
+  document.getElementById('memo-pares').textContent=0;
+  document.getElementById('memo-intentos').textContent=0;
+  document.getElementById('memo-msg').classList.remove('visible');
+  renderMemo();
+  showScreen('memorama');
+}
+
+function renderMemo(){
+  const g=document.getElementById('memo-grid');
+  g.innerHTML='';
+  memoCards.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='memo-card'+(c.flipped?' flipped':'')+(c.matched?' matched':'');
+    el.innerHTML=`<div class="memo-card-inner">
+      <div class="memo-face memo-back">🎴</div>
+      <div class="memo-face memo-front">${c.icon?c.icon+' ':''}${c.face}</div>
+    </div>`;
+    if(!c.matched) el.onclick=()=>flipMemo(c.id);
+    g.appendChild(el);
+  });
+}
+
+function flipMemo(id){
+  if(memoBusy)return;
+  const c=memoCards.find(x=>x.id===id);
+  if(!c||c.flipped||c.matched)return;
+  c.flipped=true;
+  memoFlipped.push(c);
+  renderMemo();
+  if(memoFlipped.length===2){
+    memoIntentos++;
+    document.getElementById('memo-intentos').textContent=memoIntentos;
+    memoBusy=true;
+    setTimeout(()=>checkMemo(),700);
+  }
+}
+
+function checkMemo(){
+  const [a,b]=memoFlipped;
+  if(a.pairId===b.pairId){
+    a.matched=b.matched=true;
+    memoMatched++;
+    document.getElementById('memo-pares').textContent=memoMatched;
+    if(memoMatched===8) document.getElementById('memo-msg').classList.add('visible');
+  } else {
+    a.flipped=b.flipped=false;
+  }
+  memoFlipped=[]; memoBusy=false;
+  renderMemo();
+}
+
+/* ═══════════════════════════════════════════════════
+   SOPA DE LETRAS
+═══════════════════════════════════════════════════ */
+const SOPA_WORDS_E1 = [
+  {word:'FLUJO',    hint:'🌊',def:'Variable: cuánto pasa'},
+  {word:'PRESION',  hint:'💨',def:'Variable: fuerza del fluido'},
+  {word:'NIVEL',    hint:'📦',def:'Variable: qué tan lleno'},
+  {word:'CONTROL',  hint:'🎛️',def:'Función: regula el proceso'},
+  {word:'SEÑAL',    hint:'📡',def:'Tipo de comunicación'},
+  {word:'ALARMA',   hint:'🔔',def:'Avisa cuando algo falla'},
+  {word:'VALVULA',  hint:'🔧',def:'Dispositivo que controla flujo'},
+  {word:'TAG',      hint:'🏷️',def:'Código identificador'},
+];
+
+let sopaGrid=[],sopaWords=[],sopaFound=[],sopaStart=null,sopaTimer=0,sopaInterval=null,sopaSize=12;
+
+function initSopa(){
+  sopaWords=shuffle([...SOPA_WORDS_E1]).slice(0,6);
+  sopaFound=new Array(sopaWords.length).fill(false);
+  sopaGrid=createEmptyGrid(sopaSize);
+  placeWords();
+  fillRandom();
+  sopaStart=null; sopaTimer=0;
+  clearInterval(sopaInterval);
+  sopaInterval=setInterval(()=>{sopaTimer++;document.getElementById('sopa-time').textContent=sopaTimer;},1000);
+  renderSopa();
+  renderWordList();
+  showScreen('sopa');
+}
+
+function createEmptyGrid(n){return Array.from({length:n},()=>Array(n).fill(''));}
+
+function placeWords(){
+  const dirs=[[0,1],[1,0],[1,1]];
+  sopaWords.forEach(w=>{
+    let placed=false,tries=0;
+    while(!placed&&tries<200){
+      tries++;
+      const dir=dirs[Math.floor(Math.random()*dirs.length)];
+      const maxR=sopaSize-(dir[0]*(w.word.length-1));
+      const maxC=sopaSize-(dir[1]*(w.word.length-1));
+      if(maxR<=0||maxC<=0)continue;
+      const r=Math.floor(Math.random()*maxR),c=Math.floor(Math.random()*maxC);
+      let ok=true;
+      for(let i=0;i<w.word.length;i++){
+        const ch=sopaGrid[r+dir[0]*i][c+dir[1]*i];
+        if(ch!==''&&ch!==w.word[i]){ok=false;break;}
+      }
+      if(ok){
+        for(let i=0;i<w.word.length;i++) sopaGrid[r+dir[0]*i][c+dir[1]*i]=w.word[i];
+        w.row=r;w.col=c;w.dir=dir;
+        placed=true;
+      }
+    }
+  });
+}
+
+function fillRandom(){
+  const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<sopaSize;r++) for(let c=0;c<sopaSize;c++) if(!sopaGrid[r][c]) sopaGrid[r][c]=alpha[Math.floor(Math.random()*alpha.length)];
+}
+
+let sopaSelStart=null,sopaSelEnd=null,sopaSelCells=[];
+
+function renderSopa(){
+  const g=document.getElementById('sopa-grid');
+  g.style.gridTemplateColumns=`repeat(${sopaSize},34px)`;
+  g.innerHTML='';
+  const foundCells=new Set();
+  sopaWords.forEach((w,wi)=>{
+    if(sopaFound[wi]&&w.dir){
+      for(let i=0;i<w.word.length;i++) foundCells.add((w.row+w.dir[0]*i)+','+(w.col+w.dir[1]*i));
+    }
+  });
+  for(let r=0;r<sopaSize;r++){
+    for(let c=0;c<sopaSize;c++){
+      const el=document.createElement('div');
+      el.className='sopa-cell';
+      el.textContent=sopaGrid[r][c];
+      el.dataset.r=r;el.dataset.c=c;
+      if(foundCells.has(r+','+c)) el.classList.add('found');
+      else if(sopaSelCells.some(s=>s[0]===r&&s[1]===c)) el.classList.add('selecting');
+      el.onclick=()=>clickSopaCell(r,c);
+      g.appendChild(el);
+    }
+  }
+}
+
+function clickSopaCell(r,c){
+  if(sopaFound.every(Boolean))return;
+  if(!sopaSelStart){
+    sopaSelStart={r,c}; sopaSelEnd=null; sopaSelCells=[[r,c]];
+  } else {
+    sopaSelEnd={r,c};
+    sopaSelCells=getCellsBetween(sopaSelStart.r,sopaSelStart.c,r,c);
+    checkSopaSelection();
+    sopaSelStart=null; sopaSelEnd=null; sopaSelCells=[];
+  }
+  renderSopa();
+}
+
+function getCellsBetween(r1,c1,r2,c2){
+  const cells=[];
+  const dr=Math.sign(r2-r1),dc=Math.sign(c2-c1);
+  let r=r1,c=c1;
+  while(true){
+    cells.push([r,c]);
+    if(r===r2&&c===c2)break;
+    r+=dr;c+=dc;
+    if(cells.length>sopaSize*2)break;
+  }
+  return cells;
+}
+
+function checkSopaSelection(){
+  const sel=sopaSelCells.map(([r,c])=>sopaGrid[r][c]).join('');
+  sopaWords.forEach((w,wi)=>{
+    if(sopaFound[wi])return;
+    if(sel===w.word){
+      sopaFound[wi]=true;
+      renderWordList();
+      if(sopaFound.every(Boolean)){clearInterval(sopaInterval);}
+    }
+  });
+}
+
+function renderWordList(){
+  const el=document.getElementById('word-list-items');
+  el.innerHTML='';
+  sopaWords.forEach((w,i)=>{
+    el.innerHTML+=`<div class="word-item${sopaFound[i]?' found':''}"><span class="wi-icon">${w.hint}</span>${w.word} <span style="color:var(--text3);font-size:.75rem">${w.def}</span></div>`;
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   ADIVINA LA PALABRA (AHORCADO TEMÁTICO)
+═══════════════════════════════════════════════════ */
+const AH_WORDS = [
+  {word:'NEUMATICO',  pista:'Tipo de actuador que usa aire comprimido para mover válvulas'},
+  {word:'HIDRAULICO', pista:'Actuador que usa aceite a presión y genera mucha fuerza'},
+  {word:'ELECTRICO',  pista:'Actuador que usa un motor para abrir o cerrar válvulas'},
+  {word:'GLOBO',      pista:'Válvula diseñada para regular el flujo con precisión'},
+  {word:'COMPUERTA',  pista:'Válvula que funciona como una puerta que sube o baja'},
+  {word:'CHECK',      pista:'Válvula que solo deja pasar el fluido en una dirección'},
+  {word:'BOLA',       pista:'Válvula que opera girando una esfera 90 grados'},
+  {word:'ACTUADOR',   pista:'Dispositivo que convierte una señal en movimiento mecánico'},
+  {word:'VALVULA',    pista:'Dispositivo que controla el paso del fluido en una tubería'},
+  {word:'DIAFRAGMA',  pista:'Membrana flexible dentro de un actuador neumático'},
+  {word:'RETORNO',    pista:'Lo que evita la válvula check: el flujo de ___'},
+  {word:'PRESION',    pista:'Fuerza que ejerce el fluido dentro de una tubería'},
+  {word:'FLUJO',      pista:'Cuánto fluido pasa por una tubería en un tiempo determinado'},
+  {word:'NIVEL',      pista:'Qué tan lleno está un tanque o recipiente'},
+  {word:'POSICIONADOR',pista:'Dispositivo que ayuda al actuador a llegar a la posición correcta'},
+];
+
+const AH_PARTS=['ah-head','ah-body','ah-larm','ah-rarm','ah-lleg','ah-rleg'];
+const AH_MAX=6;
+let ahWord='',ahPista='',ahGuessed=[],ahWrong=[],ahRonda=0,ahRacha=0,ahDone=false,ahUsedWords=[];
+
+function initAhorcado(){
+  // Pick unused word
+  if(ahUsedWords.length>=AH_WORDS.length) ahUsedWords=[];
+  const available=AH_WORDS.filter((_,i)=>!ahUsedWords.includes(i));
+  const pick=available[Math.floor(Math.random()*available.length)];
+  const pickIdx=AH_WORDS.indexOf(pick);
+  ahUsedWords.push(pickIdx);
+  ahWord=pick.word;
+  ahPista=pick.pista;
+  ahGuessed=[]; ahWrong=[]; ahDone=false;
+  ahRonda++;
+  document.getElementById('ah-ronda').textContent=Math.min(ahRonda,8);
+  document.getElementById('ah-racha').textContent=ahRacha;
+  document.getElementById('ah-pista').textContent=ahPista;
+  document.getElementById('ah-feedback').textContent='';
+  AH_PARTS.forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('ah-intentos-left').textContent=AH_MAX;
+  renderAhWord();
+  renderAhKeyboard();
+  showScreen('ahorcado');
+}
+
+function renderAhWord(){
+  const d=document.getElementById('ah-word-display');
+  d.innerHTML='';
+  ahWord.split('').forEach(l=>{
+    const box=document.createElement('div');
+    box.className='ah-letter-box'+(ahGuessed.includes(l)?' revealed':'');
+    box.textContent=ahGuessed.includes(l)?l:'';
+    d.appendChild(box);
+  });
+}
+
+function renderAhKeyboard(){
+  const rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
+  const kb=document.getElementById('ah-keyboard');
+  kb.innerHTML='';
+  rows.forEach(row=>{
+    const rowEl=document.createElement('div');
+    rowEl.style.cssText='display:flex;justify-content:center;flex-wrap:wrap;gap:0';
+    row.split('').forEach(l=>{
+      const k=document.createElement('button');
+      k.className='ah-key'+(ahGuessed.includes(l)?' hit':ahWrong.includes(l)?' miss':'');
+      k.textContent=l;
+      k.disabled=ahGuessed.includes(l)||ahWrong.includes(l)||ahDone;
+      k.onclick=()=>ahGuessLetter(l);
+      rowEl.appendChild(k);
+    });
+    kb.appendChild(rowEl);
+  });
+}
+
+function ahGuessLetter(l){
+  if(ahDone||ahGuessed.includes(l)||ahWrong.includes(l))return;
+  if(ahWord.includes(l)){
+    ahGuessed.push(l);
+    // Check win
+    const allRevealed=ahWord.split('').every(c=>ahGuessed.includes(c));
+    if(allRevealed){
+      ahDone=true; ahRacha++;
+      document.getElementById('ah-racha').textContent=ahRacha;
+      document.getElementById('ah-feedback').innerHTML='<span style="color:#6fcf97;font-weight:600">✅ ¡Correcto! La palabra es '+ahWord+'</span>';
+      spawnBurstAt(200,200);
+      setTimeout(()=>{ if(ahRonda<8) initAhorcado(); },1800);
+    }
+  } else {
+    ahWrong.push(l);
+    const idx=ahWrong.length-1;
+    if(idx<AH_PARTS.length) document.getElementById(AH_PARTS[idx]).style.display='';
+    document.getElementById('ah-intentos-left').textContent=AH_MAX-ahWrong.length;
+    if(ahWrong.length>=AH_MAX){
+      ahDone=true; ahRacha=0;
+      document.getElementById('ah-racha').textContent=ahRacha;
+      // Reveal word
+      ahWord.split('').forEach(c=>ahGuessed.push(c));
+      document.getElementById('ah-feedback').innerHTML='<span style="color:#eb7070;font-weight:600">❌ Era: '+ahWord+'. ¡Inténtalo de nuevo!</span>';
+      // Wrong-reveal color
+      setTimeout(()=>{
+        document.querySelectorAll('.ah-letter-box').forEach(b=>{b.classList.remove('revealed');b.classList.add('wrong-reveal');b.textContent=b.textContent||ahWord[Array.from(document.getElementById('ah-word-display').children).indexOf(b)];});
+      },100);
+      setTimeout(()=>{ if(ahRonda<8) initAhorcado(); },2200);
+    }
+  }
+  renderAhWord();
+  renderAhKeyboard();
+}
+
+/* ═══════════════════════════════════════════════════
+   UNE CON FLECHAS
+═══════════════════════════════════════════════════ */
+const FLECHAS_DATA = [
+  {left:'Válvula de Bola',      right:'Gira 90° para abrir o cerrar'},
+  {left:'Válvula Globo',        right:'Regula el flujo con precisión'},
+  {left:'Válvula Check',        right:'Evita el retroceso del fluido'},
+  {left:'Válvula de Compuerta', right:'Flujo completo, solo abre o cierra'},
+  {left:'Actuador Neumático',   right:'Usa aire comprimido'},
+  {left:'Actuador Eléctrico',   right:'Usa motor, control remoto preciso'},
+  {left:'Actuador Hidráulico',  right:'Usa aceite, genera mucha fuerza'},
+  {left:'Señal 4-20mA',         right:'Estándar eléctrico analógico'},
+];
+
+let fLeft=[],fRight=[],fSelected=null,fCorrect=0,fWrong=0,fMatched=[];
+
+function initFlechas(){
+  const pairs=shuffle([...FLECHAS_DATA]).slice(0,6);
+  fLeft=pairs.map(p=>({label:p.left,pairId:pairs.indexOf(p),matched:null}));
+  fRight=shuffle(pairs.map(p=>({label:p.right,pairId:pairs.indexOf(p),matched:null})));
+  fSelected=null;fCorrect=0;fWrong=0;fMatched=new Array(6).fill(null);
+  document.getElementById('f-correct').textContent=0;
+  document.getElementById('f-wrong').textContent=0;
+  document.getElementById('f-feedback').textContent='';
+  renderFlechas();
+  showScreen('flechas');
+}
+
+function renderFlechas(){
+  const L=document.getElementById('f-left'),R=document.getElementById('f-right');
+  L.innerHTML='';R.innerHTML='';
+  fLeft.forEach((item,i)=>{
+    const el=document.createElement('div');
+    el.className='flecha-item'+(item.matched==='ok'?' matched-ok':item.matched==='fail'?' matched-fail':'')+(fSelected&&fSelected.side==='left'&&fSelected.idx===i?' selected':'');
+    if(item.matched) el.classList.add('disabled');
+    el.textContent=item.label;
+    if(!item.matched) el.onclick=()=>selectFlecha('left',i);
+    L.appendChild(el);
+  });
+  fRight.forEach((item,i)=>{
+    const el=document.createElement('div');
+    el.className='flecha-item'+(item.matched==='ok'?' matched-ok':item.matched==='fail'?' matched-fail':'')+(fSelected&&fSelected.side==='right'&&fSelected.idx===i?' selected':'');
+    if(item.matched) el.classList.add('disabled');
+    el.textContent=item.label;
+    if(!item.matched) el.onclick=()=>selectFlecha('right',i);
+    R.appendChild(el);
+  });
+}
+
+function selectFlecha(side,idx){
+  if(!fSelected){
+    fSelected={side,idx};
+  } else {
+    if(fSelected.side===side){fSelected={side,idx};renderFlechas();return;}
+    const leftIdx = side==='right'?fSelected.idx:idx;
+    const rightIdx= side==='right'?idx:fSelected.idx;
+    const lItem=fLeft[leftIdx],rItem=fRight[rightIdx];
+    if(lItem.pairId===rItem.pairId){
+      lItem.matched='ok';rItem.matched='ok';fCorrect++;
+      document.getElementById('f-correct').textContent=fCorrect;
+      document.getElementById('f-feedback').innerHTML='<span style="color:#6fcf97">✅ ¡Correcto!</span>';
+      spawnBurstAt(300,250);
+      if(fCorrect===6) setTimeout(()=>{document.getElementById('f-feedback').innerHTML='<span style="color:var(--accent2);font-family:Syne,sans-serif;font-size:1.1rem">🏆 ¡Completaste todo!</span>';},400);
+    } else {
+      lItem.matched='fail';rItem.matched='fail';fWrong++;
+      document.getElementById('f-wrong').textContent=fWrong;
+      document.getElementById('f-feedback').innerHTML='<span style="color:#eb7070">❌ Incorrecto, intenta de nuevo</span>';
+      setTimeout(()=>{lItem.matched=null;rItem.matched=null;renderFlechas();},900);
+    }
+    fSelected=null;
+  }
+  renderFlechas();
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════ */
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+function spawnBurst(el){
+  const rect=el.getBoundingClientRect();
+  ['✨','⭐','🎉','💫','🌟'].slice(0,3).forEach((_,i)=>{
+    setTimeout(()=>{
+      const b=document.createElement('div');
+      b.className='correct-burst';b.textContent=['✨','⭐','🎉','💫'][Math.floor(Math.random()*4)];
+      b.style.left=(rect.left+Math.random()*rect.width)+'px';
+      b.style.top=(rect.top+Math.random()*rect.height/2)+'px';
+      document.body.appendChild(b);setTimeout(()=>b.remove(),700);
+    },i*80);
+  });
+}
+
+function spawnBurstAt(x,y){
+  ['✨','⭐','🎉'].forEach((_,i)=>{
+    setTimeout(()=>{
+      const b=document.createElement('div');
+      b.className='correct-burst';b.textContent=['✨','⭐','💫'][i];
+      b.style.left=(x+Math.random()*60-30)+'px';b.style.top=(y+Math.random()*40-20)+'px';
+      document.body.appendChild(b);setTimeout(()=>b.remove(),700);
+    },i*80);
+  });
+}
+</script>
+</body>
+</html>
